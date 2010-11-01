@@ -8,13 +8,13 @@
  * This file contains the definitions and prototypes for functions used by
  * the VT100 emulation mode plugin.
  */
+#ifndef _VT100_H
+#define _VT100_H
+
 #include <Windows.h>
 #include <tchar.h>
 #include "../../defines.h"
 #include "../../emulation.h"
-
-#ifndef _VT100_H
-#define _VT100_H
 
 #define STYLE_POS(x) (INT)((x & 0xFF000000) >> 24)
 

@@ -7,6 +7,9 @@
  *
  * This file contains the definition of the emulation plugin interface.
  */
+#ifndef _EMULATION_H_
+#define _EMULATION_H_
+
 #include <Windows.h>
 #include <tchar.h>
 
@@ -31,3 +34,5 @@ typedef struct _emulator {
     /* @since 2 */
     DWORD (*on_connect)(LPVOID data);
 } Emulator;
+
+#endif

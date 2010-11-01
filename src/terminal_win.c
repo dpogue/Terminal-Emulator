@@ -51,7 +51,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
 
     wndData = (TermInfo*)malloc(sizeof(TermInfo));
     wndData->dwMode = kModeCommand;
-    wndData->hEmulator = vt100_init(hwnd);
+    wndData->hEmulator = rfid_init(hwnd);
     wndData->hwnd = hwnd;
     wndData->hReadLoop = NULL;
     SetWindowLongPtr(hwnd, 0, (LONG)wndData);

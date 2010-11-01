@@ -33,6 +33,7 @@ enum modes {
 /* In an ideal world, emulation modes would be dynamically loaded as plugins
    However, this is not the best time to deal with Win32 DLL loading.  */
 extern Emulator* vt100_init(HWND);
+extern Emulator* rfid_init(HWND);
 
 /**
  * The TermInfo structure contains information regarding the current state of
@@ -49,7 +50,6 @@ typedef struct _TermInfo {
     HWND hwnd;
     HANDLE hCommDev;
     HANDLE hReadLoop;
-    /*TCHAR screen[24][81];*/
     Emulator* hEmulator;
 } TermInfo;
 
