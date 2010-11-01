@@ -1,0 +1,33 @@
+*~
+\#*
+.\#*
+*.swp
+.DS_Store
+
+# VS Directories #
+bin/
+obj/
+TestResults/
+Debug/
+Release/
+ipch/
+
+# Compiled stuff #
+*.com
+*.class
+*.dll
+*.exe
+*.pdb
+*.dll.config
+*.cache
+
+# Visual Studio Project stuff #
+*.suo
+*.sdf
+*.opensdf
+*.user
+*.filters
+
+# Project files <-- you might want to commit these! #
+*.sln
+*.vcxproj

@@ -58,12 +58,22 @@ LPCSTR vt100_escape_input(LPVOID data, DWORD input) {
  *
  * @returns int 0 on success, greater than 0 otherwise.
  */
-DWORD vt100_receive(LPVOID data, LPCTSTR rx) {
+DWORD vt100_receive(LPVOID data, BYTE* rx, DWORD len) {
     static TCHAR esc_buffer[16];
 
     VT100_Data* vtdata = (VT100_Data*)data;
     HWND hwnd = vtdata->hwnd;
-    LPTSTR str = (LPTSTR)rx;
+    TCHAR* trx = (TCHAR*)malloc(sizeof(TCHAR)*len);
+    LPTSTR str;
+    DWORD i = 0;
+
+    for (i = 0; i < len; i++) {
+        trx[i] = 0;
+        trx[i] = rx[i];
+    }
+    trx[i] = 0;
+
+    str = (LPTSTR)trx;
 
     while (_tcsclen(str) > 0) {
         if (_tcsclen(esc_buffer) != 0 && str[0] > ' ') {
@@ -212,11 +222,11 @@ DWORD vt100_receive(LPVOID data, LPCTSTR rx) {
  * @param LPVOID data   The emulation mode data (VT100_Data*)
  * @param HDC hdc       The handle to the device context.
  *                      If this is NULL, GetDC will be called.
- * @param BOOL force    Force a repaint of the whole screen if true.
+ * @param BOOLEAN force Force a repaint of the whole screen if true.
  *
  * @returns int 0 on success, greater than 0 otherwise.
  */
-DWORD vt100_paint(HWND hwnd, LPVOID data, HDC hdc, BOOL force) {
+DWORD vt100_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
     DWORD y;
     DWORD ret = 0;
     VT100_Data* vt = (VT100_Data*)data;

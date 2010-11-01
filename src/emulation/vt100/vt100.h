@@ -61,7 +61,7 @@ struct _colstyle {
 typedef struct _line {
     /* Refers to double height/width */
     CHAR weight;
-    BOOL bDirty;
+    BOOLEAN bDirty;
     ColStyle* colstyle;
 } Line;
 
@@ -73,10 +73,10 @@ typedef struct _vt100_data {
     CHAR htabs[132];
     DWORD scroll_top;
     DWORD scroll_bottom;
-    BOOL autowrap;
-    BOOL relorigin;
+    BOOLEAN autowrap;
+    BOOLEAN relorigin;
     CHAR appcursormode;
-    BOOL screen_reverse;
+    BOOLEAN screen_reverse;
     Line lines[24];
     TCHAR screen[24][81];
 } VT100_Data;

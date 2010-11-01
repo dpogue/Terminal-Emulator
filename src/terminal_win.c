@@ -51,7 +51,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
 
     wndData = (TermInfo*)malloc(sizeof(TermInfo));
     wndData->dwMode = kModeCommand;
-    //wndData->hEmulator = &emu_none;
     wndData->hEmulator = vt100_init(hwnd);
     wndData->hwnd = hwnd;
     wndData->hReadLoop = NULL;
