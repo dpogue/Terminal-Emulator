@@ -23,10 +23,10 @@ typedef struct _emulator {
     LPCSTR (*escape_input)(LPVOID data, DWORD input);
 
     /* @since 1 */
-    DWORD (*receive)(LPVOID data, LPCTSTR rx);
+    DWORD (*receive)(LPVOID data, BYTE* rx, DWORD len);
 
     /* @since 2 */
-    DWORD (*paint)(HWND hwnd, LPVOID data, HDC hdc, BOOL force);
+    DWORD (*paint)(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force);
 
     /* @since 2 */
     DWORD (*on_connect)(LPVOID data);

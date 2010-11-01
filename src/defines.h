@@ -14,6 +14,7 @@
 
 /* APPLICATION MESSAGE ID DEFINES */
 #define TWM_RXDATA (WM_APP + 1)
+#define TWM_TXDATA (WM_APP + 2)
 
 typedef struct _emulator Emulator;
 typedef struct _TermInfo TermInfo;

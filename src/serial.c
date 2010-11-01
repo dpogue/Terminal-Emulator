@@ -151,7 +151,7 @@ int ReadData(HANDLE* fd, HWND hwnd) {
                 if (cstat.cbInQue > 0) {
                     DWORD bytes = cstat.cbInQue;
                     do {
-                        TCHAR* chars = (TCHAR*)malloc(sizeof(TCHAR)*(cstat.cbInQue + 1));
+                        BYTE* chars = (BYTE*)malloc(cstat.cbInQue + 1);
                         for (i = 0; i < (bytes > 1024 ? 1024 : bytes); i++) {
                             chars[i] = 0;
                             /* Read each character individually */
@@ -162,7 +162,7 @@ int ReadData(HANDLE* fd, HWND hwnd) {
                         }
                         chars[i] = 0;
 
-                        SendMessage(hwnd, TWM_RXDATA, (WPARAM)chars, _tcsclen(chars));
+                        SendMessage(hwnd, TWM_RXDATA, (WPARAM)chars, cstat.cbInQue);
                         bytes -= (bytes > 1024 ? 1024 : bytes);
                     } while(bytes > 0);
                 }

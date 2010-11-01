@@ -184,8 +184,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             if (ti->dwMode == kModeConnect) {
                 DWORD ret = 0;
 
-                ti->hEmulator->receive(ti->hEmulator->emulator_data, (LPCTSTR)wParam);
-                free((LPVOID)wParam);
+                ti->hEmulator->receive(ti->hEmulator->emulator_data, (BYTE*)wParam, lParam);
+                free((BYTE*)wParam);
                 
                 if ((ret = ti->hEmulator->paint(hwnd,
                         (LPVOID)ti->hEmulator->emulator_data, NULL, FALSE)) != 0) {
@@ -193,6 +193,22 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
                     DWORD dwError = GetLastError();
                     ReportError(dwError);
                 }
+            }
+        }
+        return 0;
+    case TWM_TXDATA:
+        {
+            if (ti->dwMode == kModeConnect) {
+                BYTE* data = (BYTE*)wParam;
+                if (data == NULL)
+                    return 0;
+
+                if (SendData(&ti->hCommDev, (LPVOID)data, lParam) != 0) {
+                    DWORD dwError = GetLastError();
+                    ReportError(dwError);
+                }
+
+                free(data);
             }
         }
         return 0;
