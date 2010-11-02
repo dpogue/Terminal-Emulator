@@ -207,7 +207,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
                     ReportError(dwError);
                 }
 
-                free(data);
+                //free(data);
             }
         }
         return 0;

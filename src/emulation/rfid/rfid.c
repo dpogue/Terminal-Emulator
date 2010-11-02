@@ -43,7 +43,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
         DWORD i = 0;
         for (i = 0; i < len; i++) {
             bcc ^= rx[i];
-            buffer[i] = rx[i];
+            buffer[buflen] = rx[i];
             buflen++;
         }
     } else {
@@ -56,7 +56,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 
         length = (WORD)rx[1];
 
-        buffer = (BYTE*)malloc(length);
+        buffer = (BYTE*)calloc(1, length);
 
         for (i = 0; i < len; i++) {
             bcc ^= rx[i];
@@ -66,9 +66,11 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
     }
 
     if (buflen == length) { /* We have the entire message */
+		DWORD i = 0;
+		LPTSTR prt;
 
         /* Check the BCC bytes to make sure it's correct */
-        if (buffer[buflen - 2] != bcc && buffer[buflen-1] != (bcc ^ 0xFF)) {
+        if (buffer[buflen - 1] != bcc && buffer[buflen] != (bcc ^ 0xFF)) {
             free(buffer);
             buffer = NULL;
             buflen = 0;
@@ -78,6 +80,13 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
         }
 
         /* Parse! */
+		prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
+		prt[0] = 0;
+		for (i = 0; i < length; i++) {
+			_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
+		}
+		MessageBox(NULL, prt, NULL, MB_ICONWARNING);
+
         free(buffer);
         buffer = NULL;
         buflen = 0;
@@ -86,15 +95,6 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
     }
 
 	return 0;
-
-	/*LPTSTR prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
-	DWORD i = 0;
-
-	prt[0] = 0;
-	for (i = 0; i < length; i++) {
-		_stprintf(prt, TEXT("%s %02X"), prt, rx[2*i]);
-	}
-	MessageBox(NULL, prt, NULL, MB_ICONWARNING);*/
 }
 
 /**
@@ -124,7 +124,7 @@ DWORD rfid_on_connect(LPVOID data) {
     RFID_Data* dat = (RFID_Data*)data;
 
 	CHAR* msg = "\x01\x08\x00\x03\x01\x40\x4B\xB4\0";
-    SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)msg, strlen(msg));
+    SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)msg, 8);
     return 0;
 }
 
