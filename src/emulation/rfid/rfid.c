@@ -39,6 +39,8 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
     static WORD buflen = 0;
     static WORD length = 0;
 
+	RFID_Data* dat = (RFID_Data*)data;
+
     if (buffer != NULL) {
         DWORD i = 0;
         for (i = 0; i < len; i++) {
@@ -68,6 +70,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
     if (buflen == length) { /* We have the entire message */
 		DWORD i = 0;
 		LPTSTR prt;
+		RFID_Header head;
 
         /* Check the BCC bytes to make sure it's correct */
         if (buffer[buflen - 1] != bcc && buffer[buflen] != (bcc ^ 0xFF)) {
@@ -78,6 +81,45 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
             bcc = 0;
             return 2;
         }
+
+		/*head = *((RFID_Header*)buffer);*/
+
+		head.length = (WORD)*(buffer + 1);
+		head.deviceID = (BYTE)*(buffer + 3);
+		head.command1 = (BYTE)*(buffer + 4);
+		head.command2 = (BYTE)*(buffer + 5);
+
+		switch (head.command2) {
+		case 0x40:
+			{
+				RFID_D2A_GetVersion msg;
+				WORD numMessages = (head.length - sizeof(RFID_Header) - 2 - 2) / 3;
+				WORD pos = 7;
+
+				msg.header = head;
+				msg.status = (BYTE)*(buffer + 6);
+				//msg.entityID = (BYTE)*(buffer + 7);
+
+				while (numMessages-- > 0) {
+					BYTE entity = (BYTE)*(buffer + pos);
+					WORD version = (WORD)(*(buffer + (pos + 1)) << 8 | *(buffer + (pos + 2)));
+
+					prt = (LPTSTR)malloc(sizeof(TCHAR)*80);
+					prt[0] = 0;
+					_stprintf(prt, TEXT("    version %d.%d.%d (%s Module)"), (version & 0xF00) >> 8,
+						(version & 0xF0) >> 4, (version & 0xF), rfid_entity_name(entity));
+
+					_tcsncpy(dat->screen[dat->screenrow++], prt, 80);
+					//MessageBox(NULL, prt, NULL, MB_ICONWARNING);
+					pos += 3;
+				}
+			}
+			break;
+		case 0x41:
+			{
+			}
+			break;
+		}
 
         /* Parse! */
 		prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
@@ -92,6 +134,8 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
         buflen = 0;
         length = 0;
         bcc = 0;
+
+		InvalidateRect(dat->hwnd, NULL, TRUE);
     }
 
 	return 0;
@@ -109,6 +153,30 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
  * @returns int 0 on success, greater than 0 otherwise.
  */
 DWORD rfid_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
+	RFID_Data* dat = (RFID_Data*)data;
+	TEXTMETRIC tm;
+	BYTE y = 0;
+	BOOLEAN bGotDC = FALSE;
+
+	if (hdc == NULL) {
+        hdc = GetDC(hwnd);
+        bGotDC = TRUE;
+    }
+
+	SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
+    GetTextMetrics(hdc, &tm);
+
+	SetBkColor(hdc, RGB(0, 0, 0));
+	SetTextColor(hdc, RGB(255, 255, 255));
+
+	for (y = 0; y < 24; y++) {
+		TextOut(hdc, 0, y * (tm.tmExternalLeading + tm.tmHeight), dat->screen[y], _tcslen(dat->screen[y]));
+	}
+
+	if (bGotDC) {
+        ReleaseDC(hwnd, hdc);
+    }
+
 	return 0;
 }
 
@@ -152,6 +220,9 @@ Emulator* rfid_init(HWND hwnd) {
             data->screen[y][x] = (x == 80) ? '\0' : ' ';
         }
     }
+	_tcsncpy(data->screen[0], TEXT("RFID Reader"), 11);
+	data->screen[0][11] = 0;
+	data->screenrow = 1;
 
 	e->emulator_data = data;
 
