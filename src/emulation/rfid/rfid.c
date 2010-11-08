@@ -126,7 +126,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 			_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
 		}
 		/*MessageBox(NULL, prt, NULL, MB_ICONWARNING);*/
-        SetDlgItemText(dat->dialog, IDC_EDIT1, prt);
+        SetDlgItemText(dat->dialog, RFID_TAGFIELD, prt);
 
         free(buffer);
         buffer = NULL;
@@ -134,7 +134,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
         length = 0;
         bcc = 0;
 
-		InvalidateRect(dat->hwnd, NULL, TRUE);
+		InvalidateRect(dat->console, NULL, TRUE);
     }
 
 	return 0;
@@ -189,16 +189,25 @@ DWORD rfid_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
  */
 DWORD rfid_on_connect(LPVOID data) {
     RFID_Data* dat = (RFID_Data*)data;
-
-    SetDlgItemText(data->dialog, IDC_EDIT1, TEXT("CONNECTED"));
-
-    ShowWindow(data->dialog, SW_SHOW);
-    ShowWindow(data->console, SW_HIDE);
-
-
 	CHAR* msg = "\x01\x08\x00\x03\x01\x40\x4B\xB4\0";
-    SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)msg, 8);
+
+    SetDlgItemText(dat->dialog, RFID_CONNSTATUS, TEXT("Connected"));
+
+    ShowWindow(dat->dialog, SW_SHOW);
+    //ShowWindow(dat->console, SW_HIDE);
+
+    SendMessage(dat->console, TWM_TXDATA, (WPARAM)msg, 8);
     return 0;
+}
+
+BOOLEAN rfid_wnd_proc_override(LPVOID data, LPMSG msg) {
+	RFID_Data* dat = (RFID_Data*)data;
+
+	if (IsWindow(dat->dialog) && IsDialogMessage(dat->dialog, msg)) {
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 Emulator emu_rfid =
@@ -211,7 +220,7 @@ Emulator emu_rfid =
     &rfid_paint,            /** << Function to repaint the screen */
     &rfid_on_connect,       /** << Function to call upon connection */
     NULL,
-    NULL,
+    &rfid_wnd_proc_override,
     NULL
 };
 
@@ -220,13 +229,13 @@ Emulator* rfid_init(HWND hwnd) {
     DWORD y = 0;
     DWORD x = 0;
     RFID_Data* data = (RFID_Data*)malloc(sizeof(RFID_Data));
-    HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_INSTANCE);
+    HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
 
     data->console = hwnd;
 
-    data->dialog = CreateDialog(hInst, MAKEINTRESOURCE(RFIDDialog),
+    data->dialog = CreateDialog(hInst, MAKEINTRESOURCE(RFIDDIALOG),
                         hwnd, rfid_wnd_proc);
-    SetWindowLongPtr(data->dialog, (LONG)data);
+    SetWindowLongPtr(data->dialog, GWL_USERDATA, (LONG)data);
 
     for (y = 0; y < 24; y++) {
         for (x = 0; x <= 80; x++) {

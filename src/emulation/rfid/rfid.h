@@ -5,17 +5,9 @@
 #include <tchar.h>
 #include "../../defines.h"
 #include "../../emulation.h"
-#include "../../resource.h"
+#include "resource.h"
 
 #include "rfid_structures.h"
-
-#define RFIDDialog  202
-#define IDC_RADIO1  2001
-#define IDC_Radio2  2002
-#define IDC_EDIT1   2003
-#define IDC_CHECK1  2004
-#define IDC_CHECK2  2005
-#define IDC_CHECK3  2006
 
 /* Prefix these with RFID because some conflict with Windows constants! */
 enum RFID_StatusCodes {

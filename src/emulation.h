@@ -41,7 +41,7 @@ typedef struct _emulator {
     DWORD (*on_disconnect)(LPVOID data);
 
     /* @since 3 */
-    BOOLEAN (*wnd_proc_override)(LPMSG msg);
+    BOOLEAN (*wnd_proc_override)(LPVOID data, LPMSG msg);
 
     /* @since 3 */
     HMENU (*emulator_menu)(void);

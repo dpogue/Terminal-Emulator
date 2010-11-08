@@ -1,4 +1,5 @@
 #include "rfid.h"
+#include "../../terminal.h"
 
 BOOL CALLBACK rfid_wnd_proc(HWND hwnd, UINT msg, WPARAM wParam,
         LPARAM lParam) {
@@ -6,7 +7,7 @@ BOOL CALLBACK rfid_wnd_proc(HWND hwnd, UINT msg, WPARAM wParam,
     switch(msg){
         case WM_INITDIALOG:
             {
-                SetDlgItemText(hwnd, IDC_EDIT1, TEXT("DISCONNECTED"));
+                SetDlgItemText(hwnd, RFID_CONNSTATUS, TEXT("Disconnected"));
             }
             break;
         case WM_CLOSE:

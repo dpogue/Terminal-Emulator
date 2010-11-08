@@ -1,14 +1,82 @@
-#include "rfid.h"
+// Microsoft Visual C++ generated resource script.
+//
+#include <Windows.h>
+#include "resource.h"
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
 
-RFIDDialog DIALOGEX 0, 0, 574, 237
-STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD
-EXSTYLE WS_EX_TRANSPARENT | WS_EX_COMPOSITED
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+RFIDDIALOG DIALOGEX 0, 0, 317, 182
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "RFID Reader"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_EDIT1,169,60,181,14,ES_AUTOHSCROLL | WS_DISABLED
-    CONTROL         "light 1",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,354,109,36,10
-    CONTROL         "light 2",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,354,128,36,10
-    CONTROL         "light 3",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,356,145,36,10
-    GROUPBOX        "Lights",IDC_STATIC,342,98,74,72
+    EDITTEXT        RFID_TAGFIELD,7,31,302,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Static",RFID_CONNSTATUS,242,7,67,8
+    GROUPBOX        "Tag Types",65534,7,52,142,121
+    GROUPBOX        "Extras",-1,167,52,142,121
 END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    RFIDDIALOG, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
 
