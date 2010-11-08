@@ -28,7 +28,15 @@ typedef struct _rfid_data {
 	BYTE screenrow;
 } RFID_Data;
 
+/**
+ * @implementation rfid_util.c
+ */
 LPCTSTR rfid_entity_name(BYTE entity);
+
+/**
+ * @implementation rfid_util.c
+ */
+RFID_BCC rfid_calc_bcc(LPVOID message, WORD size);
 
 /**
  * @implementation rfid_dlg.c

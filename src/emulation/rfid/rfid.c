@@ -189,14 +189,25 @@ DWORD rfid_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
  */
 DWORD rfid_on_connect(LPVOID data) {
     RFID_Data* dat = (RFID_Data*)data;
-	CHAR* msg = "\x01\x08\x00\x03\x01\x40\x4B\xB4\0";
+    RFID_A2D_GetVersion* msg;
 
     SetDlgItemText(dat->dialog, RFID_CONNSTATUS, TEXT("Connected"));
 
     ShowWindow(dat->dialog, SW_SHOW);
-    //ShowWindow(dat->console, SW_HIDE);
+    ShowWindow(dat->console, SW_HIDE);
 
-    SendMessage(dat->console, TWM_TXDATA, (WPARAM)msg, 8);
+    msg = (RFID_A2D_GetVersion*)malloc(sizeof(RFID_A2D_GetVersion));
+    msg->header.sof = 0x1;
+    msg->header.length = sizeof(RFID_A2D_GetVersion);
+    msg->header.deviceID = 0x3;
+    msg->header.command1 = 0x1;
+    msg->header.command2 = 0x40;
+
+    /* TODO: Make this dynamically calculated */
+    msg->bcc.lrc = 0x4B;
+    msg->bcc.i_lrc = 0xB4;
+
+    SendMessage(dat->console, TWM_TXDATA, (WPARAM)msg, msg->header.length);
     return 0;
 }
 

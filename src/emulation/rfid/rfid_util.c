@@ -24,3 +24,18 @@ LPCTSTR rfid_entity_name(BYTE entity) {
 		return TEXT("Unknown");
 	}
 }
+
+RFID_BCC rfid_calc_bcc(LPVOID message, WORD size) {
+    BYTE lrc = 0;
+    DWORD i = 0;
+
+    for (i = 0; i < size; i++) {
+        lrc ^= (BYTE)(*message + i);
+    }
+
+    RFID_BCC bcc;
+    bcc.lrc = lrc;
+    bcc.i_lrc = (lrc ^ 0xFF);
+
+    return bcc;
+}
