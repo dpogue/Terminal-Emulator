@@ -63,6 +63,12 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
 
     while (GetMessage (&msg, NULL, 0, 0))
     {
+        if (EMULATOR_HAS_FUNC(wndData->hEmulator, wnd_proc_override)) {
+            if (wndData->hEmulator->wnd_proc_override(&msg)) {
+                continue;
+            }
+        }
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }

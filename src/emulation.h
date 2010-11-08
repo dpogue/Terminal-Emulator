@@ -13,6 +13,9 @@
 #include <Windows.h>
 #include <tchar.h>
 
+#define EMULATOR_HAS_FUNC(emu, func) \
+    ((emu != NULL) && (emu->func != NULL))
+
 typedef struct _emulator {
     DWORD dwVersion;
 
@@ -33,6 +36,15 @@ typedef struct _emulator {
 
     /* @since 2 */
     DWORD (*on_connect)(LPVOID data);
+
+    /* @since 3 */
+    DWORD (*on_disconnect)(LPVOID data);
+
+    /* @since 3 */
+    BOOLEAN (*wnd_proc_override)(LPMSG msg);
+
+    /* @since 3 */
+    HMENU (*emulator_menu)(void);
 } Emulator;
 
 #endif

@@ -141,5 +141,7 @@ void ConnectMode(HWND hwnd, DWORD port) {
 
     ti->hReadLoop = CreateThread(NULL, 0, &ReadLoop, (LPVOID)ti, 0, 0);
 
-    ti->hEmulator->on_connect((LPVOID)ti->hEmulator->emulator_data);
+    if (EMULATOR_HAS_FUNC(ti->hEmulator, on_connect)) {
+        ti->hEmulator->on_connect((LPVOID)ti->hEmulator->emulator_data);
+    }
 }

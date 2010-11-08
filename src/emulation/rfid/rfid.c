@@ -198,13 +198,16 @@ DWORD rfid_on_connect(LPVOID data) {
 
 Emulator emu_rfid =
 {
-    2,                      /** << Emulator structure version */
+    3,                      /** << Emulator structure version */
     NULL,                   /** << Emulator data pointer */
-    &rfid_emulation_name,  /** << Function returning emulator name */
-    &rfid_escape_input,    /** << Function to escape keyboard input */
-    &rfid_receive,         /** << Function to handled received data */
-    &rfid_paint,           /** << Function to repaint the screen */
-    &rfid_on_connect       /** << Function to call upon connection */
+    &rfid_emulation_name,   /** << Function returning emulator name */
+    &rfid_escape_input,     /** << Function to escape keyboard input */
+    &rfid_receive,          /** << Function to handled received data */
+    &rfid_paint,            /** << Function to repaint the screen */
+    &rfid_on_connect,       /** << Function to call upon connection */
+    NULL,
+    NULL,
+    NULL
 };
 
 Emulator* rfid_init(HWND hwnd) {
