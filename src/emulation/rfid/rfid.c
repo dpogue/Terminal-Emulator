@@ -98,7 +98,6 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 
 				msg.header = head;
 				msg.status = (BYTE)*(buffer + 6);
-				//msg.entityID = (BYTE)*(buffer + 7);
 
 				while (numMessages-- > 0) {
 					BYTE entity = (BYTE)*(buffer + pos);
@@ -110,7 +109,6 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 						(version & 0xF0) >> 4, (version & 0xF), rfid_entity_name(entity));
 
 					_tcsncpy(dat->screen[dat->screenrow++], prt, 80);
-					//MessageBox(NULL, prt, NULL, MB_ICONWARNING);
 					pos += 3;
 				}
 			}
@@ -127,7 +125,8 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 		for (i = 0; i < length; i++) {
 			_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
 		}
-		MessageBox(NULL, prt, NULL, MB_ICONWARNING);
+		/*MessageBox(NULL, prt, NULL, MB_ICONWARNING);*/
+        SetDlgItemText(dat->dialog, IDC_EDIT1, prt);
 
         free(buffer);
         buffer = NULL;
@@ -191,6 +190,12 @@ DWORD rfid_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
 DWORD rfid_on_connect(LPVOID data) {
     RFID_Data* dat = (RFID_Data*)data;
 
+    SetDlgItemText(data->dialog, IDC_EDIT1, TEXT("CONNECTED"));
+
+    ShowWindow(data->dialog, SW_SHOW);
+    ShowWindow(data->console, SW_HIDE);
+
+
 	CHAR* msg = "\x01\x08\x00\x03\x01\x40\x4B\xB4\0";
     SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)msg, 8);
     return 0;
@@ -215,8 +220,13 @@ Emulator* rfid_init(HWND hwnd) {
     DWORD y = 0;
     DWORD x = 0;
     RFID_Data* data = (RFID_Data*)malloc(sizeof(RFID_Data));
+    HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_INSTANCE);
 
-    data->hwnd = hwnd;
+    data->console = hwnd;
+
+    data->dialog = CreateDialog(hInst, MAKEINTRESOURCE(RFIDDialog),
+                        hwnd, rfid_wnd_proc);
+    SetWindowLongPtr(data->dialog, (LONG)data);
 
     for (y = 0; y < 24; y++) {
         for (x = 0; x <= 80; x++) {
