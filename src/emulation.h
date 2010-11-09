@@ -13,14 +13,11 @@
 #include <Windows.h>
 #include <tchar.h>
 
-#define EMULATOR_HAS_FUNC(emu, func) \
-    ((emu != NULL) && (emu->func != NULL))
-
 typedef struct _emulator {
     DWORD dwVersion;
 
-    /* @since 2 */
-    void* emulator_data;
+    /* @since 1 */
+    LPVOID emulator_data;
 
     /* @since 1 */
     LPCTSTR (*emulation_name)(void);
@@ -46,5 +43,22 @@ typedef struct _emulator {
     /* @since 3 */
     HMENU (*emulator_menu)(void);
 } Emulator;
+
+#define EMULATOR_HAS_FUNC(emu, func) \
+    ((emu != NULL) && (emu->func != NULL))
+
+typedef BOOLEAN (*emulator_init_plugin)(HWND hwnd, Emulator* e);
+
+#define EMULATOR_INIT_PLUGIN(initfunc) \
+    __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator* e); \
+    __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator* e) { \
+        e = initfunc(hwnd); \
+        if (e == NULL) return FALSE; \
+        if (e->dwVersion <= 0) return FALSE; \
+        if (e->emulation_name == NULL) return FALSE; \
+        if (e->receive == NULL) return FALSE; \
+        if (e->paint == NULL) return FALSE; \
+        return TRUE; \
+    }
 
 #endif

@@ -254,3 +254,5 @@ Emulator* rfid_init(HWND hwnd) {
 
 	return e;
 }
+
+EMULATOR_INIT_PLUGIN(rfid_init)

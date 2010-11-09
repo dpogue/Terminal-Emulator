@@ -332,12 +332,13 @@ Emulator* test_init(HWND hwnd) {
 }
 ----
 
-[[FutureProofing]]
-Future-proofing
-~~~~~~~~~~~~~~~
-In the future, plugins will be fully handled as separate .dll files, and
-loaded dynamically. There will be a macro definition to handle calling
-the init function and exposing it to the Terminal Emulator.
+[[EmulatorInitMacro]]
+The EMULATOR_INIT_PLUGIN macro
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Every plugin must call this macro in order to export its initialisation
+function to the Terminal Emulator.
 
-For the moment, it is enough to assume that adding a one-line macro after
-the initialisation function will satisfy these requirements.
+The macro takes one argument, which is the name of the plugin 
+initialisation function. For the test plugin, it would be as follows:
+[source,c]
+EMULATOR_INIT_PLUGIN(test_init) // Note the lack of a semicolon!!!
