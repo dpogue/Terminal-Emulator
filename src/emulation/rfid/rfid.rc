@@ -1,6 +1,5 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include <Windows.h>
 #include "resource.h"
 /////////////////////////////////////////////////////////////////////////////
 // English (United States) resources
@@ -20,9 +19,10 @@ CAPTION "RFID Reader"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        RFID_TAGFIELD,7,31,302,14,ES_AUTOHSCROLL | ES_READONLY
-    LTEXT           "Static",RFID_CONNSTATUS,242,7,67,8
+    LTEXT           "Static",RFID_CONNSTATUS,7,6,67,8
     GROUPBOX        "Tag Types",65534,7,52,142,121
     GROUPBOX        "Extras",-1,167,52,142,121
+    PUSHBUTTON      "Show Terminal",RFID_BUTTON,243,5,66,14
 END
 
 

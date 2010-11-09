@@ -83,7 +83,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
         }
 
 		/*head = *((RFID_Header*)buffer);*/
-
+		head.soframe = (BYTE)*(buffer);
 		head.length = (WORD)*(buffer + 1);
 		head.deviceID = (BYTE)*(buffer + 3);
 		head.command1 = (BYTE)*(buffer + 4);
@@ -93,6 +93,7 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 		case 0x40:
 			{
 				RFID_D2A_GetVersion msg;
+				RFID_A2D_FindToken* nextmsg = NULL;
 				WORD numMessages = (head.length - sizeof(RFID_Header) - 2 - 2) / 3;
 				WORD pos = 7;
 
@@ -111,22 +112,23 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 					_tcsncpy(dat->screen[dat->screenrow++], prt, 80);
 					pos += 3;
 				}
+
+				rfid_findtoken_request(&nextmsg);
+				SendMessage(dat->console, TWM_TXDATA, (WPARAM)nextmsg, nextmsg->header.length);
 			}
 			break;
 		case 0x41:
 			{
+				/* Parse! */
+				prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
+				prt[0] = 0;
+				for (i = 0; i < length; i++) {
+					_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
+				}
+				SetDlgItemText(dat->dialog, RFID_TAGFIELD, prt);
 			}
 			break;
 		}
-
-        /* Parse! */
-		prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
-		prt[0] = 0;
-		for (i = 0; i < length; i++) {
-			_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
-		}
-		/*MessageBox(NULL, prt, NULL, MB_ICONWARNING);*/
-        SetDlgItemText(dat->dialog, RFID_TAGFIELD, prt);
 
         free(buffer);
         buffer = NULL;
@@ -189,23 +191,14 @@ DWORD rfid_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
  */
 DWORD rfid_on_connect(LPVOID data) {
     RFID_Data* dat = (RFID_Data*)data;
-    RFID_A2D_GetVersion* msg;
+    RFID_A2D_GetVersion* msg = NULL;
 
     SetDlgItemText(dat->dialog, RFID_CONNSTATUS, TEXT("Connected"));
 
     ShowWindow(dat->dialog, SW_SHOW);
     ShowWindow(dat->console, SW_HIDE);
 
-    msg = (RFID_A2D_GetVersion*)malloc(sizeof(RFID_A2D_GetVersion));
-    msg->header.sof = 0x1;
-    msg->header.length = sizeof(RFID_A2D_GetVersion);
-    msg->header.deviceID = 0x3;
-    msg->header.command1 = 0x1;
-    msg->header.command2 = 0x40;
-
-    /* TODO: Make this dynamically calculated */
-    msg->bcc.lrc = 0x4B;
-    msg->bcc.i_lrc = 0xB4;
+	rfid_getversion_request(&msg);
 
     SendMessage(dat->console, TWM_TXDATA, (WPARAM)msg, msg->header.length);
     return 0;

@@ -28,14 +28,35 @@ LPCTSTR rfid_entity_name(BYTE entity) {
 RFID_BCC rfid_calc_bcc(LPVOID message, WORD size) {
     BYTE lrc = 0;
     DWORD i = 0;
+	RFID_BCC bcc;
 
     for (i = 0; i < size; i++) {
-        lrc ^= (BYTE)(*message + i);
+        lrc ^= *((BYTE*)message + i);
     }
-
-    RFID_BCC bcc;
+    
     bcc.lrc = lrc;
     bcc.i_lrc = (lrc ^ 0xFF);
 
     return bcc;
+}
+
+void rfid_getversion_request(RFID_A2D_GetVersion** msg) {
+	*msg = (RFID_A2D_GetVersion*)malloc(sizeof(RFID_A2D_GetVersion));
+    (*msg)->header.soframe = 0x1;
+    (*msg)->header.length = sizeof(RFID_A2D_GetVersion);
+    (*msg)->header.deviceID = 0x3;
+    (*msg)->header.command1 = 0x1;
+    (*msg)->header.command2 = 0x40;
+    (*msg)->bcc = rfid_calc_bcc((LPVOID)*msg, (*msg)->header.length - 2);
+}
+
+void rfid_findtoken_request(RFID_A2D_FindToken** msg) {
+	*msg = (RFID_A2D_FindToken*)malloc(sizeof(RFID_A2D_FindToken));
+    (*msg)->header.soframe = 0x1;
+    (*msg)->header.length = sizeof(RFID_A2D_FindToken);
+    (*msg)->header.deviceID = 0x3;
+    (*msg)->header.command1 = 0x1;
+    (*msg)->header.command2 = 0x40;
+	(*msg)->timeout = 0xA;
+    (*msg)->bcc = rfid_calc_bcc((LPVOID)*msg, (*msg)->header.length - 2);
 }

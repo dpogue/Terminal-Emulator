@@ -38,6 +38,10 @@ LPCTSTR rfid_entity_name(BYTE entity);
  */
 RFID_BCC rfid_calc_bcc(LPVOID message, WORD size);
 
+void rfid_getversion_request(RFID_A2D_GetVersion** msg);
+
+void rfid_findtoken_request(RFID_A2D_FindToken** msg);
+
 /**
  * @implementation rfid_dlg.c
  */
