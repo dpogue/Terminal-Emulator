@@ -1,0 +1,269 @@
+Emulation Plugins
+=================
+Darryl Pogue <dvpdiner2@gmail.com>
+:toc:
+:numbered:
+:website: http://github.com/dvpdiner2/Terminal-Emulator
+:structver: 3
+
+The terminal emulator program does very little processing and protocol
+handling on its own, much of its power comes from ``emulation plugins''
+that are used to parse, pre-process, and display data.
+
+The terminal emulator is written in C using the Win32 API. Familiarity with
+both C and the Win32 API are essential if you wish to extend the application
+by means of an emulation plugin.
+
+[[ImportantConcepts]]
+Important Concepts
+------------------
+The magic behind emulation plugins is all based on allowing a plugin to
+provide specialised functions that will be called by the Terminal program.
+In an object-oriented view, this could be seen as all emulation plugins
+extending from a common base class, and overriding methods to add the
+necessary functionality.
+
+The Terminal Emulator manages these functions by storing a structure of
+function pointers. Every emulation plugin must provide such a structure
+in order to be loaded. The definition of this structure is in 'emulation.h'.
+
+.Structure versioning
+[NOTE]
+=====
+It is important to note the current version number of the structure as well,
+if an emulation plugin claims to be a certain version it is expected to
+implement all of the functions for that version.
+
+*The current version is {structver}.*
+=====
+
+[[EmulatorStructure]]
+The Emulator Structure
+----------------------
+As of the version {structver}, the structure definition is as follows:
+[source,c]
+----
+typedef struct _emulator {
+    DWORD       dwVersion;
+    LPVOID      emulator_data;
+    LPCTSTR   (*emulation_name)(void);
+    LPCSTR    (*escape_input)(LPVOID data, DWORD input);
+    DWORD     (*receive)(LPVOID data, BYTE* rx, DWORD len);
+    DWORD     (*paint)(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force);
+    DWORD     (*on_connect)(LPVOID data);
+    DWORD     (*on_disconnect)(LPVOID data);
+    BOOLEAN   (*wnd_proc_override)(LPVOID data, LPMSG msg);
+    HMENU     (*emulator_menu)(void);
+} Emulator;
+----
+
+The next sections examine each of the structure members in detail.
+
+[[dwVersion]]
+dwVersion
+~~~~~~~~~
+[source,c]
+DWORD dwVersion;
+
+This tells the Terminal Emulator what version of the structure is being used
+by the emulation plugin. Ideally, this should always be the latest version!
+This value is *required*.
+
+[[emulator_data]]
+emulator_data
+~~~~~~~~~~~~~
+[source,c]
+LPVOID emulator_data;
+
+This is a pointer to space that can be used by the emulation plugin to store
+its own data. It is an excellent idea to define a structure to store data
+that is pertinent to the emulation plugin, and store a pointer to an
+allocated instance here. In the structure definition, this should be
+initialised to a default value of +NULL+.
+
+The pointer stored at this location is often passed as an argument to
+other emulation functions, so it is highly encouraged that it be used
+to store any sort of persistent data. You wouldn't want to be using global
+variables, now would you? ;)
+
+[[emulation_name]]
+emulation_name
+~~~~~~~~~~~~~~
+[source,c]
+LPCTSTR (*emulation_name)(void);
+
+This function returns a user-friendly name for the emulation plugin. This
+name will be displayed in a menu where the application user will be able to
+choose between the available emulation modes. It will also be used as the
+name of the top-level menu item name if the plugin provides a menu.
+
+It is *required* that this function the implemented. Your emulation plugin
+will not be loaded if a name cannot be found.
+
+[horizontal]
+Available Since:: version 1
+Arguments:: none
+Returns:: A pointer to a constant TCHAR string containing the user-friendly 
+name of the emulation mode.
+Required:: yes
+
+[[escape_input]]
+escape_input
+~~~~~~~~~~~~
+[source,c]
+LPCSTR (*escape_input)(LPVOID data, DWORD input);
+
+This function is called whenever a character is input from the keyboard.
+It allows an emulation plugin to provide special handling for keys such as
+arrows or the number pad.
+
+The function should return a string that will be sent in place of the 
+normal character input, effectively escaping the character. This is useful
+for emulation modes such as a VT100 terminal, where a single arrow key can
+generate an escape sequence several characters long.
+
+If the character should not be escaped, this function returns +NULL+.
+
+[horizontal]
+Available Since:: version 1
+Arguments::
+    +LPVOID data+;; The pointer stored in <<emulator_data,emulator_data>>.
+    +DWORD input+;; The virtual key corresponding to the keyboard input.
+Returns:: A pointer to a character string escape sequence for the input +
+or +NULL+ if no escaping should be performed.
+Required:: no
+
+[[receive]]
+receive
+~~~~~~~
+[source,c]
+DWORD (*receive)(LPVOID data, BYTE* rx, DWORD len);
+
+This is where the magic happens! This function is called whenever data is 
+read.
+
+This function returns +0+ if the data is parsed correctly, or a non-zero
+integer if there was an error. The data is passed to the function as a
+pointer to an array of BYTEs. The size of the array is given by the third
+argument.
+
+This function is required to be implemented, and will prevent the plugin
+from loading if it is not.
+
+[horizontal]
+Available Since:: version 1
+Arguments::
+    +LPVOID data+;; The pointer stored in <<emulator_data,emulator_data>>.
+    +BYTE* rx+;; A pointer to an array of BYTEs containing the data that
+    was read.
+    +DWORD len+;; The length of the data (and therefore, the BYTE array).
+Returns:: +0+ on successful parsing, or a non-zero integer in case of error.
+Required:: yes
+
+[[paint]]
+paint
+~~~~~
+[source,c]
+DWORD (*paint)(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force);
+
+This function is responsible for drawing the contents of the terminal
+window while the emulation plugin is active.
+
+It returns +0+ to indicate success, or a non-zero integer in the event of
+an error. The HDC parameter is allowed to be +NULL+, so it is important that
+this function acquire a device content if needed before attempting to draw.
+The 'force' parameter indicates that the entire window should be redrawn.
+We are able to take advantage of this by potentially only redrawing what has
+changed when 'force' is false.
+
+This function is required to be implemented, and will prevent the plugin
+from loading if it is not.
+
+[horizontal]
+Available Since:: version 2 '(note that if this is missing, no drawing will
+be done)'
+Arguments::
+    +HWND hwnd+;; The handle to the window to be drawn.
+    +LPVOID data+;; The pointer stored in <<emulator_data,emulator_data>>.
+    +HDC hdc+;; The handle to the device context, or +NULL+. The plugin
+    must ensure that this contains a valid device context before drawing!
+    +BOOLEAN force+;; Indicates whether this is a forced re-paint of the
+    entire window, or whether a partial re-paint is sufficient.
+Returns:: +0+ on successful painting, or a non-zero integer to indicate an
+error.
+Required:: yes
+
+[[on_connect]]
+on_connect
+~~~~~~~~~~
+[source,c]
+DWORD (*on_connect)(LPVOID data);
+
+This function is called immediately once the user has indicated a port
+and entered a connected state. It should handle any connection 
+initialisation as well as allocating buffers for receiving data.
+
+It returns +0+ on success, or a non-zero integer to indicate failure.
+
+[horizontal]
+Available Since:: version 2
+Arguments::
+    +LPVOID data+;; The pointer stored in <<emulator_data,emulator_data>>.
+Returns:: +0+ on success, or a non-zero integer on failure.
+Required:: no
+
+[[on_disconnect]]
+on_disconnect
+~~~~~~~~~~~~~
+[source,c]
+DWORD (*on_disconnect)(LPVOID data);
+
+This function is called immediately once the user has requested to
+disconnect, but before the port is closed. It should handle any 
+disconnection or teardown messages and free allocated session data.
+
+It returns +0+ on success, or a non-zero integer to indicate failure.
+
+[horizontal]
+Available Since:: version 3
+Arguments::
+    +LPVOID data+;; The pointer stored in <<emulation_data,emulation_data>>.
+Returns:: +0+ on success, or a non-zero integer on failure.
+Required:: no
+
+[[wnd_proc_override]]
+wnd_proc_override
+~~~~~~~~~~~~~~~~~
+[source,c]
+BOOLEAN (*wnd_proc_override)(LPVOID data, LPMSG msg);
+
+This is a dangerous function that allows a plugin to capture messages
+before the default message loop is run for the Terminal application. It
+should *only* be used in cases where a plugin presents a dialog and needs
+to check for messages directed at the dialog.
+
+It returns +TRUE+ if there was a message that was captured, or +FALSE+ to
+allow the message to be processed by the default message loop.
+
+[horizontal]
+Available Since:: version 3
+Arguments::
+    +LPVOID data+;; The pointer stored in <<emulator_data,emulator_data>>.
+    +LPMSG msg+;; The pointer to the message being processed.
+Returns:: +TRUE+ if the message was handled by the plugin, or +FALSE+ if the
+message should be passed to the Terminal application.
+Required:: no
+
+emulator_menu
+~~~~~~~~~~~~~
+[source,c]
+HMENU (*emulator_menu)(void);
+
+*Do not use this function!*
+
+Currently, it is not implemented and will have no effect.
+
+The goal is to allow each plugin to return a menu that will be added to
+the Terminal Emulator window when the plugin is active. That requires some
+additional work to handle processing WM_COMMAND messages for the added
+menu items, which must be done per-plugin.
