@@ -267,3 +267,77 @@ The goal is to allow each plugin to return a menu that will be added to
 the Terminal Emulator window when the plugin is active. That requires some
 additional work to handle processing WM_COMMAND messages for the added
 menu items, which must be done per-plugin.
+
+[[InitialisingPlugin]]
+Initialising a plugin
+---------------------
+The Terminal Emulator will probe for plugins upon start up and try to
+initialise them. Therefore every plugin must contain an initialisation
+function that will return an emulation structure pointer for that plugin. This function should also handle allocating and default values for the
+<<emulator_data,emulator_data>> field.
+
+In general, you probably want a global structure definition, and your
+initialisation function should return a pointer to that global structure.
+
+[[PluginStructure]]
+The plugin structure
+~~~~~~~~~~~~~~~~~~~~
+Assuming that all of the necessary functions have been declared or
+implemented, the global structure would look something like this:
+[source,c]
+----
+Emulator emu_test =
+{
+    3,                       /** << Emulator structure version */
+    NULL,                    /** << Emulator data pointer */
+    &test_emulation_name,    /** << Function returning emulator name */
+    &test_escape_input,      /** << Function to escape keyboard input */
+    &test_receive,           /** << Function to handled received data */
+    &test_paint,             /** << Function to repaint the screen */
+    &test_on_connect,        /** << Function to call upon connection */
+    NULL,                    /** << Function to call upon disconnection */
+    &test_wnd_proc_override, /** << Function to override message loop */
+    NULL                     /** << Function to return menu handle */
+};
+----
+
+If a function is not needed by a particular emulation plugin, it can set
+the function pointer to +NULL+ in the structure. Note that some functions
+are required and the plugin will not be loaded if they are not implemented.
+
+[[InitFunction]]
+The initialisation function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[source,c]
+Emulator* init(HWND hwnd);
+
+The expected prototype for an initialisation function is one that takes
+a handle to the Terminal Emulator window, and returns a pointer to a
+valid Emulator structure.
+
+An example implementation might be as follows:
+[source,c]
+----
+Emulator* test_init(HWND hwnd) {
+    Emulator* emu = &emu_test;
+
+    TestData* data = (TestData*)malloc(sizeof(TestData));
+
+    data->hwnd = hwnd;
+    data->buffer[0] = 0;
+
+    emu->emulator_data = data;
+
+    return emu;
+}
+----
+
+[[FutureProofing]]
+Future-proofing
+~~~~~~~~~~~~~~~
+In the future, plugins will be fully handled as separate .dll files, and
+loaded dynamically. There will be a macro definition to handle calling
+the init function and exposing it to the Terminal Emulator.
+
+For the moment, it is enough to assume that adding a one-line macro after
+the initialisation function will satisfy these requirements.
