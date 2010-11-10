@@ -13,6 +13,7 @@
 
 #include <Windows.h>
 #include <tchar.h>
+#include <strsafe.h>
 #include "defines.h"
 #include "serial.h"
 #include "emulation.h"
@@ -22,6 +23,7 @@
 #define ID_DISCONNECT 101
 #define ID_CONNECT 102
 #define ID_COM_START 110
+#define ID_EMULATION 200
 
 /* ENUMERATION DECLARATIONS */
 enum modes {
@@ -32,8 +34,8 @@ enum modes {
 /* UGLY EXTERNS */
 /* In an ideal world, emulation modes would be dynamically loaded as plugins
    However, this is not the best time to deal with Win32 DLL loading.  */
-extern Emulator* vt100_init(HWND);
-extern Emulator* rfid_init(HWND);
+//extern Emulator* vt100_init(HWND);
+//extern Emulator* rfid_init(HWND);
 
 /**
  * The TermInfo structure contains information regarding the current state of
@@ -50,7 +52,8 @@ typedef struct _TermInfo {
     HWND hwnd;
     HANDLE hCommDev;
     HANDLE hReadLoop;
-    Emulator* hEmulator;
+    Emulator** hEmulator;
+	size_t e_idx;
 } TermInfo;
 
 /* FUNCTION PROTOTYPES */
@@ -77,5 +80,9 @@ void CommandMode(HWND hwnd);
  * @implementation terminal.c
  */
 void ConnectMode(HWND hwnd, DWORD port);
+
+Emulator* FindPlugins(HWND hwnd, TermInfo* ti);
+
+void LoadPlugin(HWND hwnd, Emulator* emu);
 
 #endif

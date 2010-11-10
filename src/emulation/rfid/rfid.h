@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <tchar.h>
+#include <strsafe.h>
 #include "../../defines.h"
 #include "../../emulation.h"
 #include "resource.h"

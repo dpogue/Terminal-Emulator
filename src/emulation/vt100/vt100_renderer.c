@@ -102,7 +102,8 @@ DWORD draw_line(DWORD ln, VT100_Data* vt, HWND hwnd, HDC hdc) {
         font = CreateFontIndirect(&lf);
         SelectObject(hdc, font);
 
-        _tcsncpy(text, vt->screen[ln] + start, len);
+        StringCchCopy(text, len, vt->screen[ln] + start);
+        /*_tcsncpy(text, vt->screen[ln] + start, len);*/
         text[len + 1] = 0;
 
         if (((current->style & (kLineStyleReverse << 16)) != 0) ^ (vt->screen_reverse)) {

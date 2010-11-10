@@ -85,7 +85,8 @@ DWORD vt100_receive(LPVOID data, BYTE* rx, DWORD len) {
                     (isdigit(str[0]) && _tcsclen(esc_buffer) == 2
                     && esc_buffer[1] == '#')) {
                 LPTSTR tmp = esc_buffer;
-                _stprintf(esc_buffer, TEXT("%s%c\0"), tmp, str[0]);
+                StringCchCat(esc_buffer, 16, str[0]);
+                /*_stprintf(esc_buffer, TEXT("%s%c\0"), tmp, str[0]);*/
 
                 OutputDebugString(esc_buffer + 1);
 
@@ -156,14 +157,16 @@ DWORD vt100_receive(LPVOID data, BYTE* rx, DWORD len) {
                     /* Ignore crazy amounts of leading zeros! */
                 } else {
                     LPTSTR tmp = esc_buffer;
-                    _stprintf(esc_buffer, TEXT("%s%c\0"), tmp, str[0]);
+                    StringCchCat(esc_buffer, 16, str[0]);
+                    /*_stprintf(esc_buffer, TEXT("%s%c\0"), tmp, str[0]);*/
                 }
             }
         } else {
             TCHAR t = str[0];
 
             if (t == 0x1B) {
-                _stprintf(esc_buffer, TEXT("%c\0"), t);
+                StringCchPrintf(esc_buffer, 16, TEXT("%c"), str[0]);
+                /*_stprintf(esc_buffer, TEXT("%c\0"), t);*/
             } else if (t == '\a') {
                 MessageBeep(MB_OK);
             } else if (t == '\b') {

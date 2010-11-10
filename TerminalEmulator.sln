@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TerminalEmulator", "src\TerminalEmulator.vcxproj", "{42B27D63-BAC0-41B3-A786-FDD9311136B0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rfid", "src\emulation\rfid\rfid.vcxproj", "{A5AF61F6-9AB1-4EE3-8AA7-A569EA5ABC6F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{42B27D63-BAC0-41B3-A786-FDD9311136B0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{42B27D63-BAC0-41B3-A786-FDD9311136B0}.Debug|Win32.Build.0 = Debug|Win32
+		{42B27D63-BAC0-41B3-A786-FDD9311136B0}.Release|Win32.ActiveCfg = Release|Win32
+		{42B27D63-BAC0-41B3-A786-FDD9311136B0}.Release|Win32.Build.0 = Release|Win32
+		{A5AF61F6-9AB1-4EE3-8AA7-A569EA5ABC6F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A5AF61F6-9AB1-4EE3-8AA7-A569EA5ABC6F}.Debug|Win32.Build.0 = Debug|Win32
+		{A5AF61F6-9AB1-4EE3-8AA7-A569EA5ABC6F}.Release|Win32.ActiveCfg = Release|Win32
+		{A5AF61F6-9AB1-4EE3-8AA7-A569EA5ABC6F}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

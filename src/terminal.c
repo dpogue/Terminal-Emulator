@@ -141,7 +141,62 @@ void ConnectMode(HWND hwnd, DWORD port) {
 
     ti->hReadLoop = CreateThread(NULL, 0, &ReadLoop, (LPVOID)ti, 0, 0);
 
-    if (EMULATOR_HAS_FUNC(ti->hEmulator, on_connect)) {
-        ti->hEmulator->on_connect((LPVOID)ti->hEmulator->emulator_data);
+    if (EMULATOR_HAS_FUNC(ti->hEmulator[ti->e_idx], on_connect)) {
+        ti->hEmulator[ti->e_idx]->on_connect((LPVOID)ti->hEmulator[ti->e_idx]->emulator_data);
     }
+}
+
+Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
+	WIN32_FIND_DATA ffd;
+	LARGE_INTEGER filesize;
+	TCHAR szAppPath[MAX_PATH];
+	TCHAR szDir[MAX_PATH];
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+
+	ti->hEmulator = (Emulator**)malloc(sizeof(Emulator)* 8);
+	ti->e_idx = 0;
+
+	GetModuleFileName(0, szAppPath, sizeof(szAppPath) - 1);
+	StringCchCopy(szDir, _tcsrchr(szAppPath, '\\') - szAppPath + 1, szAppPath);
+	StringCchCat(szDir, MAX_PATH, TEXT("\\emulation\\"));
+
+	StringCchCopy(szAppPath, MAX_PATH, szDir);
+	StringCchCat(szDir, MAX_PATH, TEXT("*.dll"));
+
+	hFind = FindFirstFile(szDir, &ffd);
+	if (INVALID_HANDLE_VALUE == hFind) {
+		DWORD dwError = GetLastError();
+        ReportError(dwError);
+        return;
+	}
+
+	do
+	{
+		if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+			TCHAR plgName[MAX_PATH];
+			HMODULE lib;
+			typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator* e);
+
+			StringCchCopy(plgName, MAX_PATH, szAppPath);
+			StringCchCat(plgName, MAX_PATH, ffd.cFileName);
+
+			if ((lib = LoadLibrary(plgName)) != 0) {
+				init_plugin ip = (init_plugin)GetProcAddress(lib, "emulator_init_plugin");
+				if (ip != NULL) {
+					Emulator* e = (Emulator*)malloc(sizeof(Emulator));
+					ip(hwnd, &e);
+
+					ti->hEmulator[0] = e;
+				}
+			}
+		}
+	}
+	while (FindNextFile(hFind, &ffd) != 0);
+
+	FindClose(hFind);
+
+	return NULL;
+}
+
+void LoadPlugin(HWND hwnd, Emulator* emu) {
 }

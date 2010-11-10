@@ -47,16 +47,14 @@ typedef struct _emulator {
 #define EMULATOR_HAS_FUNC(emu, func) \
     ((emu != NULL) && (emu->func != NULL))
 
-typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator* e);
-
 #define EMULATOR_INIT_PLUGIN(initfunc) \
-    __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator* e) { \
-        e = initfunc(hwnd); \
-        if (e == NULL) return FALSE; \
-        if (e->dwVersion <= 0) return FALSE; \
-        if (e->emulation_name == NULL) return FALSE; \
-        if (e->receive == NULL) return FALSE; \
-        if (e->paint == NULL) return FALSE; \
+    __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator** e) { \
+        *e = initfunc(hwnd); \
+        if (*e == NULL) return FALSE; \
+        if ((*e)->dwVersion <= 0) return FALSE; \
+        if ((*e)->emulation_name == NULL) return FALSE; \
+        if ((*e)->receive == NULL) return FALSE; \
+        if ((*e)->paint == NULL) return FALSE; \
         return TRUE; \
     }
 

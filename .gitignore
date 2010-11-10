@@ -27,7 +27,3 @@ ipch/
 *.opensdf
 *.user
 *.filters
-
-# Project files <-- you might want to commit these! #
-*.sln
-*.vcxproj

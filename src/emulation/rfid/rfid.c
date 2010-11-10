@@ -82,7 +82,6 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
             return 2;
         }
 
-		/*head = *((RFID_Header*)buffer);*/
 		head.soframe = (BYTE)*(buffer);
 		head.length = (WORD)*(buffer + 1);
 		head.deviceID = (BYTE)*(buffer + 3);
@@ -106,10 +105,11 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 
 					prt = (LPTSTR)malloc(sizeof(TCHAR)*80);
 					prt[0] = 0;
-					_stprintf(prt, TEXT("    version %d.%d.%d (%s Module)"), (version & 0xF00) >> 8,
-						(version & 0xF0) >> 4, (version & 0xF), rfid_entity_name(entity));
-
-					_tcsncpy(dat->screen[dat->screenrow++], prt, 80);
+                    StringCchPrintf(prt, 80,
+                            TEXT("    version %d.%d.%d (%s Module)"),
+                            (version & 0xF00) >> 8, (version & 0xF0) >> 4,
+                            (version & 0xF), rfid_entity_name(entity));
+                    StringCchCopy(dat->screen[dat->screenrow++], 80, prt);
 					pos += 3;
 				}
 
@@ -120,15 +120,23 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 		case 0x41:
 			{
 				RFID_A2D_FindToken* nextmsg = NULL;
+				RFID_D2A_FindToken msg;
 
-				/* Parse! */
-				prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
-				prt[0] = 0;
-				for (i = 0; i < length; i++) {
-					_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
+				msg.header = head;
+				msg.status = (BYTE)*(buffer + 6);
+
+				if (msg.status == RFIDERROR_NONE) {
+					/* Parse! */
+					prt = (LPTSTR)malloc(sizeof(TCHAR)*((length - 8) * 3));
+					prt[0] = 0;
+					for (i = 7; i < (length - 2); i++) {
+						TCHAR tok[4];
+						StringCchPrintf(tok, 4, TEXT("%02X \0"), buffer[i]);
+						StringCchCat(prt, ((length - 8) * 3), tok);
+					}
+					SetDlgItemText(dat->dialog, RFID_TAGFIELD, prt);
+					StringCchCopy(dat->screen[dat->screenrow++], ((length - 8) * 3), prt);
 				}
-				SetDlgItemText(dat->dialog, RFID_TAGFIELD, prt);
-				_tcsncpy(dat->screen[dat->screenrow++], prt, (length * 3));
 
 				rfid_findtoken_request(&nextmsg);
 				SendMessage(dat->console, TWM_TXDATA, (WPARAM)nextmsg, nextmsg->header.length);
@@ -248,7 +256,7 @@ Emulator emu_rfid =
 Emulator* rfid_init(HWND hwnd) {
 	Emulator* e = &emu_rfid;
     RFID_Data* data = (RFID_Data*)malloc(sizeof(RFID_Data));
-    HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
+    HINSTANCE hInst = (HINSTANCE)GetModuleHandle(TEXT("rfid.dll"));
 
     data->console = hwnd;
 

@@ -51,7 +51,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
 
     wndData = (TermInfo*)malloc(sizeof(TermInfo));
     wndData->dwMode = kModeCommand;
-    wndData->hEmulator = rfid_init(hwnd);
     wndData->hwnd = hwnd;
     wndData->hReadLoop = NULL;
     SetWindowLongPtr(hwnd, 0, (LONG)wndData);
@@ -61,10 +60,13 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
 
     CommandMode(hwnd);
 
+	FindPlugins(hwnd, wndData);
+
     while (GetMessage (&msg, NULL, 0, 0))
     {
-        if (EMULATOR_HAS_FUNC(wndData->hEmulator, wnd_proc_override)) {
-            if (wndData->hEmulator->wnd_proc_override(wndData->hEmulator->emulator_data, &msg)) {
+        if (EMULATOR_HAS_FUNC(wndData->hEmulator[wndData->e_idx], wnd_proc_override)) {
+            if (wndData->hEmulator[wndData->e_idx]->wnd_proc_override(
+					wndData->hEmulator[wndData->e_idx]->emulator_data, &msg)) {
                 continue;
             }
         }
@@ -149,8 +151,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             } else {
                 DWORD ret = 0;
 
-                if ((ret = ti->hEmulator->paint(hwnd,
-                        (LPVOID)ti->hEmulator->emulator_data, hdc, TRUE)) != 0) {
+				if ((ret = ti->hEmulator[ti->e_idx]->paint(hwnd,
+                        (LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, hdc, TRUE)) != 0) {
                     /* An error occurred while painting the text */
                     DWORD dwError = GetLastError();
                     ReportError(dwError);
@@ -163,7 +165,9 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
     case WM_CHAR:
         {
             if (ti->dwMode == kModeConnect) {
-                if (SendData(&ti->hCommDev, (LPVOID)&wParam, _tcsclen((LPCTSTR)&wParam)) != 0) {
+                size_t datalen = 0;
+                StringCchLength((LPCTSTR)&wParam, 1024, &datalen);
+                if (SendData(&ti->hCommDev, (LPVOID)&wParam, datalen) != 0) {
                     DWORD dwError = GetLastError();
                     ReportError(dwError);
                 }
@@ -173,7 +177,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
     case WM_KEYUP:
         {
             if (ti->dwMode == kModeConnect) {
-                LPCSTR data = ti->hEmulator->escape_input((LPVOID)ti->hEmulator->emulator_data, wParam);
+                LPCSTR data = ti->hEmulator[ti->e_idx]->escape_input(
+						(LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, wParam);
                 if (data == NULL)
                     return 0;
 
@@ -189,11 +194,11 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             if (ti->dwMode == kModeConnect) {
                 DWORD ret = 0;
 
-                ti->hEmulator->receive(ti->hEmulator->emulator_data, (BYTE*)wParam, lParam);
+                ti->hEmulator[ti->e_idx]->receive(ti->hEmulator[ti->e_idx]->emulator_data, (BYTE*)wParam, lParam);
                 free((BYTE*)wParam);
                 
-                if ((ret = ti->hEmulator->paint(hwnd,
-                        (LPVOID)ti->hEmulator->emulator_data, NULL, FALSE)) != 0) {
+                if ((ret = ti->hEmulator[ti->e_idx]->paint(hwnd,
+                        (LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, NULL, FALSE)) != 0) {
                     /* An error occurred while painting the text */
                     DWORD dwError = GetLastError();
                     ReportError(dwError);
