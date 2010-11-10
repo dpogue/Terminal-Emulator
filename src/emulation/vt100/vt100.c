@@ -320,4 +320,4 @@ Emulator* vt100_init(HWND hwnd) {
     return e;
 }
 
-EMULATOR_INIT_PLUGIN(vt100_init)
+//EMULATOR_INIT_PLUGIN(vt100_init)

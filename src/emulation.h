@@ -47,10 +47,9 @@ typedef struct _emulator {
 #define EMULATOR_HAS_FUNC(emu, func) \
     ((emu != NULL) && (emu->func != NULL))
 
-typedef BOOLEAN (*emulator_init_plugin)(HWND hwnd, Emulator* e);
+typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator* e);
 
 #define EMULATOR_INIT_PLUGIN(initfunc) \
-    __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator* e); \
     __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator* e) { \
         e = initfunc(hwnd); \
         if (e == NULL) return FALSE; \

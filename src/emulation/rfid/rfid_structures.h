@@ -40,6 +40,18 @@ typedef struct _rfid_d2a_findtoken {
 	BYTE entityID;
 } RFID_D2A_FindToken;
 
+typedef struct _rfid_a2d_setbaud {
+	RFID_Header header;
+	BYTE baud;
+	RFID_BCC bcc;
+} RFID_A2D_SetBaud;
+
+typedef struct _rfid_d2a_setbaud {
+	RFID_Header header;
+	BYTE status;
+	RFID_BCC bcc;
+} RFID_D2A_SetBaud;
+
 #pragma pack(pop)
 
 #endif

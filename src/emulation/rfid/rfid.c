@@ -119,6 +119,8 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 			break;
 		case 0x41:
 			{
+				RFID_A2D_FindToken* nextmsg = NULL;
+
 				/* Parse! */
 				prt = (LPTSTR)malloc(sizeof(TCHAR)*(length * 3));
 				prt[0] = 0;
@@ -126,6 +128,10 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 					_stprintf(prt, TEXT("%s %02X"), prt, buffer[i]);
 				}
 				SetDlgItemText(dat->dialog, RFID_TAGFIELD, prt);
+				_tcsncpy(dat->screen[dat->screenrow++], prt, (length * 3));
+
+				rfid_findtoken_request(&nextmsg);
+				SendMessage(dat->console, TWM_TXDATA, (WPARAM)nextmsg, nextmsg->header.length);
 			}
 			break;
 		}
@@ -192,6 +198,17 @@ DWORD rfid_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
 DWORD rfid_on_connect(LPVOID data) {
     RFID_Data* dat = (RFID_Data*)data;
     RFID_A2D_GetVersion* msg = NULL;
+	DWORD x = 0;
+	DWORD y = 0;
+
+	for (y = 0; y < 24; y++) {
+        for (x = 0; x <= 80; x++) {
+            dat->screen[y][x] = (x == 80) ? '\0' : ' ';
+        }
+    }
+	_tcsncpy(dat->screen[0], TEXT("RFID Reader"), 11);
+	dat->screen[0][11] = 0;
+	dat->screenrow = 1;
 
     SetDlgItemText(dat->dialog, RFID_CONNSTATUS, TEXT("Connected"));
 
@@ -230,8 +247,6 @@ Emulator emu_rfid =
 
 Emulator* rfid_init(HWND hwnd) {
 	Emulator* e = &emu_rfid;
-    DWORD y = 0;
-    DWORD x = 0;
     RFID_Data* data = (RFID_Data*)malloc(sizeof(RFID_Data));
     HINSTANCE hInst = (HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
 
@@ -241,13 +256,6 @@ Emulator* rfid_init(HWND hwnd) {
                         hwnd, rfid_wnd_proc);
     SetWindowLongPtr(data->dialog, GWL_USERDATA, (LONG)data);
 
-    for (y = 0; y < 24; y++) {
-        for (x = 0; x <= 80; x++) {
-            data->screen[y][x] = (x == 80) ? '\0' : ' ';
-        }
-    }
-	_tcsncpy(data->screen[0], TEXT("RFID Reader"), 11);
-	data->screen[0][11] = 0;
 	data->screenrow = 1;
 
 	e->emulator_data = data;

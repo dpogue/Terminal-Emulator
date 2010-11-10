@@ -21,6 +21,14 @@ enum RFID_StatusCodes {
 	RFIDERROR_INVALID_ADDRESS = 0x13
 };
 
+enum RFID_Baud {
+	RFID_BAUD_9600    = 0,
+	RFID_BAUD_19200   = 1,
+	RFID_BAUD_57600   = 2,
+	RFID_BAUD_115200  = 3,
+	RFID_BAUD_38400   = 4
+};
+
 typedef struct _rfid_data {
     HWND console;
     HWND dialog;
@@ -38,9 +46,20 @@ LPCTSTR rfid_entity_name(BYTE entity);
  */
 RFID_BCC rfid_calc_bcc(LPVOID message, WORD size);
 
+/**
+ * @implementation rfid_util.c
+ */
 void rfid_getversion_request(RFID_A2D_GetVersion** msg);
 
+/**
+ * @implementation rfid_util.c
+ */
 void rfid_findtoken_request(RFID_A2D_FindToken** msg);
+
+/**
+ * @implementation rfid_util.c
+ */
+void rfid_setbaud_request(RFID_A2D_SetBaud** msg, BYTE baud);
 
 /**
  * @implementation rfid_dlg.c
