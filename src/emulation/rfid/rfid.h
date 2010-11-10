@@ -60,6 +60,11 @@ void rfid_findtoken_request(RFID_A2D_FindToken** msg);
 /**
  * @implementation rfid_util.c
  */
+void rfid_setdriver_request(RFID_A2D_SetDriver** msg, BYTE drivers);
+
+/**
+ * @implementation rfid_util.c
+ */
 void rfid_setbaud_request(RFID_A2D_SetBaud** msg, BYTE baud);
 
 /**

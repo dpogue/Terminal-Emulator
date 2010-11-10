@@ -2,8 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by rfid.rc
 //
-#include <Windows.h>
-
+#include<Windows.h>
 #define SW_HIDE                         0
 #define HIDE_WINDOW                     0
 #define WM_NULL                         0x0000
@@ -1158,6 +1157,22 @@
 #define WM_DDE_FIRST                    0x03E0
 #define IDC_BUTTON1                     1000
 #define RFID_BUTTON                     1000
+#define IDC_CHECK1                      1001
+#define IDC_LED1                        1001
+#define IDC_CHECK2                      1002
+#define IDC_LED2                        1002
+#define IDC_CHECK3                      1003
+#define IDC_BUZZER                      1003
+#define IDC_CHECK4                      1004
+#define IDC_ISO_14443A                  1004
+#define IDC_CHECK5                      1005
+#define IDC_ISO_14443B                  1005
+#define IDC_CHECK6                      1006
+#define IDC_ISO_15693                   1006
+#define IDC_CHECK7                      1007
+#define IDC_TAG_IT_HF                   1007
+#define IDC_CHECK8                      1008
+#define IDC_LF_DST                      1008
 #define CF_GDIOBJLAST                   0x03FF
 #define _WIN32_WINNT_NT4                0x0400
 #define _WIN32_IE_IE40                  0x0400
@@ -1504,8 +1519,8 @@
 #define LVS_TYPESTYLEMASK               0xfc00
 #define SPVERSION_MASK                  0x0000FF00
 #define HTERROR                         -2
-#define PWR_FAIL                        -1
 #define UNICODE_NOCHAR                  0xFFFF
+#define PWR_FAIL                        -1
 #define HTTRANSPARENT                   -1
 
 // Next default values for new objects
@@ -1514,7 +1529,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        101
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_CONTROL_VALUE         1005
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

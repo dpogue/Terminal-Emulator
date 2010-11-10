@@ -23,7 +23,7 @@
 #define ID_DISCONNECT 101
 #define ID_CONNECT 102
 #define ID_COM_START 110
-#define ID_EMULATION 200
+#define ID_EMU_START 150
 
 /* ENUMERATION DECLARATIONS */
 enum modes {
@@ -31,16 +31,10 @@ enum modes {
     kModeConnect = 1,
 };
 
-/* UGLY EXTERNS */
-/* In an ideal world, emulation modes would be dynamically loaded as plugins
-   However, this is not the best time to deal with Win32 DLL loading.  */
-//extern Emulator* vt100_init(HWND);
-//extern Emulator* rfid_init(HWND);
-
 /**
  * The TermInfo structure contains information regarding the current state of
  * the terminal emulator application.
-
+ *
  * @member DWORD dwMode     The current application mode (command or connect)
  * @member HWND hwnd        The handle to the application window
  * @member HANDLE hCommDev  The handle to the serial port device
@@ -54,6 +48,7 @@ typedef struct _TermInfo {
     HANDLE hReadLoop;
     Emulator** hEmulator;
 	size_t e_idx;
+	size_t e_count;
 } TermInfo;
 
 /* FUNCTION PROTOTYPES */
@@ -81,8 +76,16 @@ void CommandMode(HWND hwnd);
  */
 void ConnectMode(HWND hwnd, DWORD port);
 
+/**
+ * Find all of the emulation plugins and probe them.
+ * @implementation terminal.c
+ */
 Emulator* FindPlugins(HWND hwnd, TermInfo* ti);
 
+/**
+ * Load an emulation mode from a plugin.
+ * @implementation terminal.c
+ */
 void LoadPlugin(HWND hwnd, Emulator* emu);
 
 #endif

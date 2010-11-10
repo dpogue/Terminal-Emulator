@@ -66,7 +66,7 @@ void CommandMode(HWND hwnd) {
 
     /* In an ideal world, there would be an easy way to get a list of all
        available COM ports */
-    for ( i = 0; i < max; i++) {
+    for (i = 0; i < max; i++) {
         TCHAR name[32];
         MENUITEMINFO mii;
 
@@ -82,6 +82,10 @@ void CommandMode(HWND hwnd) {
         InsertMenuItem(connectmenu, i, TRUE, &mii);
         EnableMenuItem(menubar, ID_COM_START + ports[i], MF_ENABLED);
     }
+
+	for (i = 0; i < ti->e_count; i++) {
+		EnableMenuItem(menubar, ID_EMU_START + i, MF_ENABLED);
+	}
 
     ModifyMenu(menubar, ID_CONNECT, MF_BYCOMMAND | MF_POPUP, (UINT_PTR)connectmenu, TEXT("&Connect"));
     EnableMenuItem(menubar, ID_CONNECT, MF_GRAYED);
@@ -152,9 +156,11 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
 	TCHAR szAppPath[MAX_PATH];
 	TCHAR szDir[MAX_PATH];
 	HANDLE hFind = INVALID_HANDLE_VALUE;
+	DWORD i = 1;
 
 	ti->hEmulator = (Emulator**)malloc(sizeof(Emulator)* 8);
-	ti->e_idx = 0;
+	ti->e_idx = 1;
+	ti->e_count = 1;
 
 	GetModuleFileName(0, szAppPath, sizeof(szAppPath) - 1);
 	StringCchCopy(szDir, _tcsrchr(szAppPath, '\\') - szAppPath + 1, szAppPath);
@@ -175,7 +181,7 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
 		if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
 			TCHAR plgName[MAX_PATH];
 			HMODULE lib;
-			typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator* e);
+			typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator** e);
 
 			StringCchCopy(plgName, MAX_PATH, szAppPath);
 			StringCchCat(plgName, MAX_PATH, ffd.cFileName);
@@ -185,8 +191,10 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
 				if (ip != NULL) {
 					Emulator* e = (Emulator*)malloc(sizeof(Emulator));
 					ip(hwnd, &e);
-
-					ti->hEmulator[0] = e;
+					LoadPlugin(hwnd, e, i);
+					ti->hEmulator[i] = e;
+					i++;
+					ti->e_count++;
 				}
 			}
 		}
@@ -198,5 +206,16 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
 	return NULL;
 }
 
-void LoadPlugin(HWND hwnd, Emulator* emu) {
+void LoadPlugin(HWND hwnd, Emulator* emu, DWORD i) {
+	HMENU menubar = GetMenu(hwnd);
+	HMENU emulation = GetSubMenu(menubar, 1);
+	MENUITEMINFO mii;
+	mii.cbSize = sizeof(MENUITEMINFO);
+    mii.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE | MIIM_STATE;
+    mii.fType = MFT_STRING;
+    mii.fState = MFS_ENABLED;
+    mii.wID = ID_EMU_START + i;
+	mii.dwTypeData = (LPTSTR)emu->emulation_name();
+
+	InsertMenuItem(emulation, 1, TRUE, &mii);
 }

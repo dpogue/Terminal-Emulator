@@ -58,9 +58,8 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
     ShowWindow(hwnd, iCmdShow);
     UpdateWindow(hwnd);
 
-    CommandMode(hwnd);
-
 	FindPlugins(hwnd, wndData);
+	CommandMode(hwnd);
 
     while (GetMessage (&msg, NULL, 0, 0))
     {
@@ -128,9 +127,17 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             break;
         default:
             {
-                DWORD port = LOWORD(wParam) - ID_COM_START;
+				if (LOWORD(wParam) < ID_EMU_START) {
+					DWORD port = LOWORD(wParam) - ID_COM_START;
 
-                ConnectMode(hwnd, port);
+					ConnectMode(hwnd, port);
+				} else {
+					DWORD emu_idx = LOWORD(wParam) - ID_EMU_START;
+					CheckMenuItem(GetMenu(hwnd), ID_EMU_START + ti->e_idx, MF_UNCHECKED);
+					ti->e_idx = emu_idx;
+
+					CheckMenuItem(GetMenu(hwnd), LOWORD(wParam), MF_CHECKED);
+				}
             }
             break;
         }

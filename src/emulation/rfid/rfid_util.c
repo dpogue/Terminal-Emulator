@@ -61,6 +61,18 @@ void rfid_findtoken_request(RFID_A2D_FindToken** msg) {
     (*msg)->bcc = rfid_calc_bcc((LPVOID)*msg, (*msg)->header.length - 2);
 }
 
+void rfid_setdriver_request(RFID_A2D_SetDriver** msg, BYTE drivers) {
+	*msg = (RFID_A2D_SetDriver*)malloc(sizeof(RFID_A2D_SetDriver));
+    (*msg)->header.soframe = 0x1;
+    (*msg)->header.length = sizeof(RFID_A2D_SetDriver);
+    (*msg)->header.deviceID = 0x3;
+    (*msg)->header.command1 = 0x1;
+    (*msg)->header.command2 = 0x43;
+	(*msg)->drivers = drivers;
+	(*msg)->active = 0x3;
+    (*msg)->bcc = rfid_calc_bcc((LPVOID)*msg, (*msg)->header.length - 2);
+}
+
 void rfid_setbaud_request(RFID_A2D_SetBaud** msg, BYTE baud) {
 	*msg = (RFID_A2D_SetBaud*)malloc(sizeof(RFID_A2D_SetBaud));
     (*msg)->header.soframe = 0x1;

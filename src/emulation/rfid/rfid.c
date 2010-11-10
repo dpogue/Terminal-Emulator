@@ -142,6 +142,13 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
 				SendMessage(dat->console, TWM_TXDATA, (WPARAM)nextmsg, nextmsg->header.length);
 			}
 			break;
+		case 0x43:
+			{
+				RFID_A2D_FindToken* nextmsg = NULL;
+				rfid_findtoken_request(&nextmsg);
+				SendMessage(dat->console, TWM_TXDATA, (WPARAM)nextmsg, nextmsg->header.length);
+			}
+			break;
 		}
 
         free(buffer);
@@ -224,7 +231,7 @@ DWORD rfid_on_connect(LPVOID data) {
     ShowWindow(dat->console, SW_HIDE);
 
 	rfid_getversion_request(&msg);
-
+	
     SendMessage(dat->console, TWM_TXDATA, (WPARAM)msg, msg->header.length);
     return 0;
 }
