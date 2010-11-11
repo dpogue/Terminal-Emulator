@@ -3,7 +3,7 @@
  * @author Darryl Pogue & Terence Stenvold
  * @designer Darryl Pogue
  * @date 2010 10 18
- * @project Terminal Emulator (COMP3980 Asn2)
+ * @project Terminal Emulator: VT100 Plugin
  *
  * This file contains the definitions and prototypes for functions used by
  * the VT100 emulation mode plugin.
@@ -13,6 +13,7 @@
 
 #include <Windows.h>
 #include <tchar.h>
+#include <strsafe.h>
 #include "../../defines.h"
 #include "../../emulation.h"
 

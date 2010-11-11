@@ -2,8 +2,8 @@
  * @filename terminal.h
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 09 24
- * @project Terminal Emulator (COMP3980 Asn1)
+ * @date 2010 11 10
+ * @project Terminal Emulator
  *
  * This file contains the definitions and prototypes for the terminal
  * window.
@@ -47,8 +47,8 @@ typedef struct _TermInfo {
     HANDLE hCommDev;
     HANDLE hReadLoop;
     Emulator** hEmulator;
-	size_t e_idx;
-	size_t e_count;
+    size_t e_idx;
+    size_t e_count;
 } TermInfo;
 
 /* FUNCTION PROTOTYPES */
@@ -86,6 +86,6 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti);
  * Load an emulation mode from a plugin.
  * @implementation terminal.c
  */
-void LoadPlugin(HWND hwnd, Emulator* emu);
+void LoadPlugin(HWND hwnd, Emulator* emu, DWORD i);
 
 #endif

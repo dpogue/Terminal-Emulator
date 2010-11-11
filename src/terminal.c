@@ -2,8 +2,8 @@
  * @filename terminal.c
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 09 24
- * @project Terminal Emulator (COMP3980 Asn1)
+ * @date 2010 11 10
+ * @project Terminal Emulator
  *
  * This file contains the implementations of all general (mode, error handling,
  * and threading) functions for the terminal emulator.
@@ -55,6 +55,11 @@ void CommandMode(HWND hwnd) {
 
     /* If a port is already open, we should close it */
     if (ti->dwMode == kModeConnect) {
+        if (EMULATOR_HAS_FUNC(ti->hEmulator[ti->e_idx], on_disconnect)) {
+            ti->hEmulator[ti->e_idx]->on_disconnect(
+                (LPVOID)ti->hEmulator[ti->e_idx]->emulator_data);
+        }
+
         ti->dwMode = kModeCommand;
         if (ClosePort(&ti->hCommDev) != 0) {
             DWORD dwError = GetLastError();
@@ -83,9 +88,9 @@ void CommandMode(HWND hwnd) {
         EnableMenuItem(menubar, ID_COM_START + ports[i], MF_ENABLED);
     }
 
-	for (i = 0; i < ti->e_count; i++) {
-		EnableMenuItem(menubar, ID_EMU_START + i, MF_ENABLED);
-	}
+    for (i = 0; i < ti->e_count; i++) {
+        EnableMenuItem(menubar, ID_EMU_START + i, MF_ENABLED);
+    }
 
     ModifyMenu(menubar, ID_CONNECT, MF_BYCOMMAND | MF_POPUP, (UINT_PTR)connectmenu, TEXT("&Connect"));
     EnableMenuItem(menubar, ID_CONNECT, MF_GRAYED);
@@ -151,71 +156,70 @@ void ConnectMode(HWND hwnd, DWORD port) {
 }
 
 Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
-	WIN32_FIND_DATA ffd;
-	LARGE_INTEGER filesize;
-	TCHAR szAppPath[MAX_PATH];
-	TCHAR szDir[MAX_PATH];
-	HANDLE hFind = INVALID_HANDLE_VALUE;
-	DWORD i = 1;
+    WIN32_FIND_DATA ffd;
+    TCHAR szAppPath[MAX_PATH];
+    TCHAR szDir[MAX_PATH];
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+    DWORD i = 1;
 
-	ti->hEmulator = (Emulator**)malloc(sizeof(Emulator)* 8);
-	ti->e_idx = 1;
-	ti->e_count = 1;
+    ti->hEmulator = (Emulator**)malloc(sizeof(Emulator)* 8);
+    ti->e_idx = 1;
+    ti->e_count = 1;
 
-	GetModuleFileName(0, szAppPath, sizeof(szAppPath) - 1);
-	StringCchCopy(szDir, _tcsrchr(szAppPath, '\\') - szAppPath + 1, szAppPath);
-	StringCchCat(szDir, MAX_PATH, TEXT("\\emulation\\"));
+    GetModuleFileName(0, szAppPath, sizeof(szAppPath) - 1);
+    StringCchCopy(szDir, _tcsrchr(szAppPath, '\\') - szAppPath + 1, szAppPath);
+    StringCchCat(szDir, MAX_PATH, TEXT("\\emulation\\"));
 
-	StringCchCopy(szAppPath, MAX_PATH, szDir);
-	StringCchCat(szDir, MAX_PATH, TEXT("*.dll"));
+    StringCchCopy(szAppPath, MAX_PATH, szDir);
+    StringCchCat(szDir, MAX_PATH, TEXT("*.dll"));
 
-	hFind = FindFirstFile(szDir, &ffd);
-	if (INVALID_HANDLE_VALUE == hFind) {
-		DWORD dwError = GetLastError();
+    hFind = FindFirstFile(szDir, &ffd);
+    if (INVALID_HANDLE_VALUE == hFind) {
+        DWORD dwError = GetLastError();
         ReportError(dwError);
-        return;
-	}
+        return NULL;
+    }
 
-	do
-	{
-		if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
-			TCHAR plgName[MAX_PATH];
-			HMODULE lib;
-			typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator** e);
+    do
+    {
+        if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+            TCHAR plgName[MAX_PATH];
+            HMODULE lib;
+            typedef BOOLEAN (*init_plugin)(HWND hwnd, Emulator** e);
 
-			StringCchCopy(plgName, MAX_PATH, szAppPath);
-			StringCchCat(plgName, MAX_PATH, ffd.cFileName);
+            StringCchCopy(plgName, MAX_PATH, szAppPath);
+            StringCchCat(plgName, MAX_PATH, ffd.cFileName);
 
-			if ((lib = LoadLibrary(plgName)) != 0) {
-				init_plugin ip = (init_plugin)GetProcAddress(lib, "emulator_init_plugin");
-				if (ip != NULL) {
-					Emulator* e = (Emulator*)malloc(sizeof(Emulator));
-					ip(hwnd, &e);
-					LoadPlugin(hwnd, e, i);
-					ti->hEmulator[i] = e;
-					i++;
-					ti->e_count++;
-				}
-			}
-		}
-	}
-	while (FindNextFile(hFind, &ffd) != 0);
+            if ((lib = LoadLibrary(plgName)) != 0) {
+                init_plugin ip = (init_plugin)GetProcAddress(lib, "emulator_init_plugin");
+                if (ip != NULL) {
+                    Emulator* e = (Emulator*)malloc(sizeof(Emulator));
+                    ip(hwnd, &e);
+                    LoadPlugin(hwnd, e, i);
+                    ti->hEmulator[i] = e;
+                    i++;
+                    ti->e_count++;
+                }
+            }
+        }
+    }
+    while (FindNextFile(hFind, &ffd) != 0);
 
-	FindClose(hFind);
+    FindClose(hFind);
 
-	return NULL;
+    return NULL;
 }
 
 void LoadPlugin(HWND hwnd, Emulator* emu, DWORD i) {
-	HMENU menubar = GetMenu(hwnd);
-	HMENU emulation = GetSubMenu(menubar, 1);
-	MENUITEMINFO mii;
-	mii.cbSize = sizeof(MENUITEMINFO);
+    HMENU menubar = GetMenu(hwnd);
+    HMENU emulation = GetSubMenu(menubar, 1);
+    MENUITEMINFO mii;
+    mii.cbSize = sizeof(MENUITEMINFO);
     mii.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE | MIIM_STATE;
     mii.fType = MFT_STRING;
     mii.fState = MFS_ENABLED;
     mii.wID = ID_EMU_START + i;
-	mii.dwTypeData = (LPTSTR)emu->emulation_name();
+    mii.dwTypeData = (LPTSTR)emu->emulation_name();
 
-	InsertMenuItem(emulation, 1, TRUE, &mii);
+    InsertMenuItem(emulation, 1, TRUE, &mii);
 }

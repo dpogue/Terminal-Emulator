@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A5AF61F6-9AB1-4EE3-8AA7-A569EA5ABC6F}</ProjectGuid>
+    <ProjectGuid>{30DC2D03-450C-4A3C-A812-CF327A55CD8E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>rfid</RootNamespace>
+    <RootNamespace>vt100</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -51,12 +51,11 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;RFID_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;VT100_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalManifestDependencies>"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'";%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -67,7 +66,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;RFID_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;VT100_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -77,18 +76,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="vt100.c" />
+    <ClCompile Include="vt100_parser.c" />
+    <ClCompile Include="vt100_renderer.c" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="..\..\emulation.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="rfid.h" />
-    <ClInclude Include="rfid_structures.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="rfid.c" />
-    <ClCompile Include="rfid_dlg.c" />
-    <ClCompile Include="rfid_util.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="rfid.rc" />
+    <ClInclude Include="vt100.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

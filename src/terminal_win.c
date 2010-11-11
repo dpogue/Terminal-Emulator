@@ -2,8 +2,8 @@
  * @filename terminal_win.c
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 09 24
- * @project Terminal Emulator (COMP3980 Asn1)
+ * @date 2010 11 10
+ * @project Terminal Emulator
  *
  * This file contains the implementations of all WIN32 functions for the
  * terminal window.
@@ -58,14 +58,14 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
     ShowWindow(hwnd, iCmdShow);
     UpdateWindow(hwnd);
 
-	FindPlugins(hwnd, wndData);
-	CommandMode(hwnd);
+    FindPlugins(hwnd, wndData);
+    CommandMode(hwnd);
 
     while (GetMessage (&msg, NULL, 0, 0))
     {
         if (EMULATOR_HAS_FUNC(wndData->hEmulator[wndData->e_idx], wnd_proc_override)) {
             if (wndData->hEmulator[wndData->e_idx]->wnd_proc_override(
-					wndData->hEmulator[wndData->e_idx]->emulator_data, &msg)) {
+                    wndData->hEmulator[wndData->e_idx]->emulator_data, &msg)) {
                 continue;
             }
         }
@@ -127,17 +127,17 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             break;
         default:
             {
-				if (LOWORD(wParam) < ID_EMU_START) {
-					DWORD port = LOWORD(wParam) - ID_COM_START;
+                if (LOWORD(wParam) < ID_EMU_START) {
+                    DWORD port = LOWORD(wParam) - ID_COM_START;
 
-					ConnectMode(hwnd, port);
-				} else {
-					DWORD emu_idx = LOWORD(wParam) - ID_EMU_START;
-					CheckMenuItem(GetMenu(hwnd), ID_EMU_START + ti->e_idx, MF_UNCHECKED);
-					ti->e_idx = emu_idx;
+                    ConnectMode(hwnd, port);
+                } else {
+                    DWORD emu_idx = LOWORD(wParam) - ID_EMU_START;
+                    CheckMenuItem(GetMenu(hwnd), ID_EMU_START + ti->e_idx, MF_UNCHECKED);
+                    ti->e_idx = emu_idx;
 
-					CheckMenuItem(GetMenu(hwnd), LOWORD(wParam), MF_CHECKED);
-				}
+                    CheckMenuItem(GetMenu(hwnd), LOWORD(wParam), MF_CHECKED);
+                }
             }
             break;
         }
@@ -158,7 +158,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             } else {
                 DWORD ret = 0;
 
-				if ((ret = ti->hEmulator[ti->e_idx]->paint(hwnd,
+                if ((ret = ti->hEmulator[ti->e_idx]->paint(hwnd,
                         (LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, hdc, TRUE)) != 0) {
                     /* An error occurred while painting the text */
                     DWORD dwError = GetLastError();
@@ -185,7 +185,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
         {
             if (ti->dwMode == kModeConnect) {
                 LPCSTR data = ti->hEmulator[ti->e_idx]->escape_input(
-						(LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, wParam);
+                        (LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, wParam);
                 if (data == NULL)
                     return 0;
 

@@ -3,9 +3,9 @@
  * @author Darryl Pogue & Terence Stenvold
  * @designer Darryl Pogue
  * @date 2010 10 18
- * @project Terminal Emulator (COMP3980 Asn2)
+ * @project Terminal Emulator: VT100 Plugin
  *
- * This file contains the "plugin" function for the VT100 emulation module.
+ * This file contains the plugin functions for the VT100 emulation module.
  */
 #include "vt100.h"
 
@@ -85,8 +85,7 @@ DWORD vt100_receive(LPVOID data, BYTE* rx, DWORD len) {
                     (isdigit(str[0]) && _tcsclen(esc_buffer) == 2
                     && esc_buffer[1] == '#')) {
                 LPTSTR tmp = esc_buffer;
-                StringCchCat(esc_buffer, 16, str[0]);
-                /*_stprintf(esc_buffer, TEXT("%s%c\0"), tmp, str[0]);*/
+                StringCchPrintf(esc_buffer, 16, TEXT("%s%c"), tmp, str[0]);
 
                 OutputDebugString(esc_buffer + 1);
 
@@ -157,8 +156,7 @@ DWORD vt100_receive(LPVOID data, BYTE* rx, DWORD len) {
                     /* Ignore crazy amounts of leading zeros! */
                 } else {
                     LPTSTR tmp = esc_buffer;
-                    StringCchCat(esc_buffer, 16, str[0]);
-                    /*_stprintf(esc_buffer, TEXT("%s%c\0"), tmp, str[0]);*/
+                    StringCchPrintf(esc_buffer, 16, TEXT("%s%c"), tmp, str[0]);
                 }
             }
         } else {
@@ -258,13 +256,16 @@ DWORD vt100_on_connect(LPVOID data) {
 
 Emulator emu_vt100 =
 {
-    2,                      /** << Emulator structure version */
+    3,                      /** << Emulator structure version */
     NULL,                   /** << Emulator data pointer */
     &vt100_emulation_name,  /** << Function returning emulator name */
     &vt100_escape_input,    /** << Function to escape keyboard input */
     &vt100_receive,         /** << Function to handled received data */
     &vt100_paint,           /** << Function to repaint the screen */
-    &vt100_on_connect       /** << Function to call upon connection */
+    &vt100_on_connect,      /** << Function to call upon connection */
+    NULL,
+    NULL,
+    NULL
 };
 
 /**
@@ -323,4 +324,4 @@ Emulator* vt100_init(HWND hwnd) {
     return e;
 }
 
-//EMULATOR_INIT_PLUGIN(vt100_init)
+EMULATOR_INIT_PLUGIN(vt100_init)

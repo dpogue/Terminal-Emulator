@@ -3,7 +3,7 @@
  * @author Darryl Pogue & Terence Stenvold
  * @designer Darryl Pogue
  * @date 2010 10 18
- * @project Terminal Emulator (COMP3980 Asn2)
+ * @project Terminal Emulator: VT100 Plugin
  *
  * This file contains the helper functions for drawing data to the screen.
  */
