@@ -41,7 +41,7 @@ implement all of the functions for that version.
 The Emulator Structure
 ----------------------
 As of the version {structver}, the structure definition is as follows:
-[source,c]
+// [source,c]
 ----
 typedef struct _emulator {
     DWORD       dwVersion;
@@ -62,8 +62,10 @@ The next sections examine each of the structure members in detail.
 [[dwVersion]]
 dwVersion
 ~~~~~~~~~
-[source,c]
+// [source,c]
+----
 DWORD dwVersion;
+----
 
 This tells the Terminal Emulator what version of the structure is being used
 by the emulation plugin. Ideally, this should always be the latest version!
@@ -72,8 +74,10 @@ This value is *required*.
 [[emulator_data]]
 emulator_data
 ~~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 LPVOID emulator_data;
+----
 
 This is a pointer to space that can be used by the emulation plugin to store
 its own data. It is an excellent idea to define a structure to store data
@@ -89,8 +93,10 @@ variables, now would you? ;)
 [[emulation_name]]
 emulation_name
 ~~~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 LPCTSTR (*emulation_name)(void);
+----
 
 This function returns a user-friendly name for the emulation plugin. This
 name will be displayed in a menu where the application user will be able to
@@ -110,8 +116,10 @@ Required:: yes
 [[escape_input]]
 escape_input
 ~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 LPCSTR (*escape_input)(LPVOID data, DWORD input);
+----
 
 This function is called whenever a character is input from the keyboard.
 It allows an emulation plugin to provide special handling for keys such as
@@ -136,8 +144,10 @@ Required:: no
 [[receive]]
 receive
 ~~~~~~~
-[source,c]
+// [source,c]
+----
 DWORD (*receive)(LPVOID data, BYTE* rx, DWORD len);
+----
 
 This is where the magic happens! This function is called whenever data is 
 read.
@@ -163,8 +173,10 @@ Required:: yes
 [[paint]]
 paint
 ~~~~~
-[source,c]
+// [source,c]
+----
 DWORD (*paint)(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force);
+----
 
 This function is responsible for drawing the contents of the terminal
 window while the emulation plugin is active.
@@ -196,8 +208,10 @@ Required:: yes
 [[on_connect]]
 on_connect
 ~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 DWORD (*on_connect)(LPVOID data);
+----
 
 This function is called immediately once the user has indicated a port
 and entered a connected state. It should handle any connection 
@@ -215,8 +229,10 @@ Required:: no
 [[on_disconnect]]
 on_disconnect
 ~~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 DWORD (*on_disconnect)(LPVOID data);
+----
 
 This function is called immediately once the user has requested to
 disconnect, but before the port is closed. It should handle any 
@@ -234,8 +250,10 @@ Required:: no
 [[wnd_proc_override]]
 wnd_proc_override
 ~~~~~~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 BOOLEAN (*wnd_proc_override)(LPVOID data, LPMSG msg);
+----
 
 This is a dangerous function that allows a plugin to capture messages
 before the default message loop is run for the Terminal application. It
@@ -256,8 +274,10 @@ Required:: no
 
 emulator_menu
 ~~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 HMENU (*emulator_menu)(void);
+----
 
 *Do not use this function!*
 
@@ -284,7 +304,7 @@ The plugin structure
 ~~~~~~~~~~~~~~~~~~~~
 Assuming that all of the necessary functions have been declared or
 implemented, the global structure would look something like this:
-[source,c]
+// [source,c]
 ----
 Emulator emu_test =
 {
@@ -308,15 +328,17 @@ are required and the plugin will not be loaded if they are not implemented.
 [[InitFunction]]
 The initialisation function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-[source,c]
+// [source,c]
+----
 Emulator* init(HWND hwnd);
+----
 
 The expected prototype for an initialisation function is one that takes
 a handle to the Terminal Emulator window, and returns a pointer to a
 valid Emulator structure.
 
 An example implementation might be as follows:
-[source,c]
+// [source,c]
 ----
 Emulator* test_init(HWND hwnd) {
     Emulator* emu = &emu_test;
@@ -340,5 +362,7 @@ function to the Terminal Emulator.
 
 The macro takes one argument, which is the name of the plugin 
 initialisation function. For the test plugin, it would be as follows:
-[source,c]
+// [source,c]
+----
 EMULATOR_INIT_PLUGIN(test_init) // Note the lack of a semicolon!!!
+----
