@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="emulation_none.c" />
     <ClCompile Include="serial.c" />
     <ClCompile Include="terminal.c" />
     <ClCompile Include="terminal_win.c" />
@@ -82,6 +83,7 @@
   <ItemGroup>
     <ClInclude Include="defines.h" />
     <ClInclude Include="emulation.h" />
+    <ClInclude Include="emulation_none.h" />
     <ClInclude Include="serial.h" />
     <ClInclude Include="terminal.h" />
   </ItemGroup>

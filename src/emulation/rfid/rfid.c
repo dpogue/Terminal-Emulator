@@ -174,6 +174,21 @@ DWORD rfid_receive(LPVOID data, BYTE* rx, DWORD len) {
         length = 0;
         bcc = 0;
 
+        if (dat->screenrow >= 24) {
+            DWORD x;
+            DWORD y;
+
+            for (y = 0; y < 23; y++) {
+                TCHAR* below = dat->screen[y+1];
+                StringCchCopy(dat->screen[y], 80, below);
+            }
+
+            dat->screenrow--;
+            for (x = 0; x < 80; x++) {
+                dat->screen[dat->screenrow][x] = ' ';
+            }
+        }
+
         InvalidateRect(dat->console, NULL, TRUE);
     }
 

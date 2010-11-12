@@ -9,7 +9,7 @@
  * and threading) functions for the terminal emulator.
  */
 #include "terminal.h"
-
+#include "emulation_none.h"
 
 /**
  * Reports a system error to the user in a MessageBox.
@@ -163,7 +163,8 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
     DWORD i = 1;
 
     ti->hEmulator = (Emulator**)malloc(sizeof(Emulator)* 8);
-    ti->e_idx = 1;
+    ti->hEmulator[0] = none_init(hwnd);
+    ti->e_idx = 0;
     ti->e_count = 1;
 
     GetModuleFileName(0, szAppPath, sizeof(szAppPath) - 1);
@@ -194,11 +195,12 @@ Emulator* FindPlugins(HWND hwnd, TermInfo* ti) {
                 init_plugin ip = (init_plugin)GetProcAddress(lib, "emulator_init_plugin");
                 if (ip != NULL) {
                     Emulator* e = (Emulator*)malloc(sizeof(Emulator));
-                    ip(hwnd, &e);
-                    LoadPlugin(hwnd, e, i);
-                    ti->hEmulator[i] = e;
-                    i++;
-                    ti->e_count++;
+                    if (ip(hwnd, &e)) {
+                        LoadPlugin(hwnd, e, i);
+                        ti->hEmulator[i] = e;
+                        i++;
+                        ti->e_count++;
+                    }
                 }
             }
         }

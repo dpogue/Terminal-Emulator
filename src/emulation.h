@@ -2,8 +2,8 @@
  * @filename emulation.h
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 10 20
- * @project Terminal Emulator (COMP3980 Asn2)
+ * @date 2010 11 10
+ * @project Terminal Emulator
  *
  * This file contains the definition of the emulation plugin interface.
  */
