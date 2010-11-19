@@ -44,11 +44,18 @@ typedef struct _emulator {
     HMENU (*emulator_menu)(void);
 } Emulator;
 
+#ifdef __cplusplus
+#define DllExport extern "C" __declspec(dllspec)
+#else
+#define DllExport __declspec(dllspec)
+#endif
+
+
 #define EMULATOR_HAS_FUNC(emu, func) \
     ((emu != NULL) && (emu->func != NULL))
 
 #define EMULATOR_INIT_PLUGIN(initfunc) \
-    __declspec(dllexport) BOOLEAN emulator_init_plugin(HWND hwnd, Emulator** e) { \
+    DllExport BOOLEAN emulator_init_plugin(HWND hwnd, Emulator** e) { \
         *e = initfunc(hwnd); \
         if (*e == NULL) return FALSE; \
         if ((*e)->dwVersion <= 0) return FALSE; \
