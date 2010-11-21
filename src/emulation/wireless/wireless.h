@@ -2,26 +2,40 @@
  * @filename wireless.h
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 11 11
+ * @date 2010 11 21
  * @project Terminal Emulator
  *
- * This file contains the prototypes for the barebones emulation mode.
+ * This file contains the prototypes for the wireless protocol design.
  */
 
-#ifndef _EMULATION_NONE_H_
-#define _EMULATION_NONE_H_
+#ifndef _WIRELESS_H_
+#define _WIRELESS_H_
 
 #include <Windows.h>
 #include <tchar.h>
 #include <strsafe.h>
-#include "defines.h"
-#include "emulation.h"
+#include "../../emulation.h"
+#include "wireless_frame.h"
 
-typedef struct _none_data {
+enum WirelessState {
+    kIdleState,
+    kSentENQState,
+    kSendingState,
+    kWaitFrameACKState,
+    kGotENQState,
+    kReadFrameState,
+    kSendFrameACKState,
+    kGotRVIState
+};
+
+typedef struct _wireless_data {
     TCHAR screen[24][81];
     BYTE screenrow;
-    BYTE screencol;
-} NoneData;
+
+    WORD state;
+    FILE* fdSend;
+    FILE* fdRecv;
+} WirelessData;
 
 /**
  * Initialise the default barebones emulator.

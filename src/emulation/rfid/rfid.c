@@ -20,20 +20,6 @@ LPCTSTR rfid_emulation_name(void) {
 }
 
 /**
- * Escapes keyboard input for this emulation mode before passing it to the
- * transmission layer.
- *
- * @param LPVOID data   The emulator data field
- * @param DWORD input   The keyboard input to be escaped.
- *                      This stores the virtual key code that was pressed.
- *
- * @returns NULL if no escaping is needed, otherwise the escaped sequence.
- */
-LPCSTR rfid_escape_input(LPVOID data, DWORD input) {
-    return NULL;
-}
-
-/**
  * Parses received data and handles any escape sequences, control characters
  * or terminal commands.
  *
@@ -318,7 +304,7 @@ Emulator emu_rfid =
     3,                       /** << Emulator structure version */
     NULL,                    /** << Emulator data pointer */
     &rfid_emulation_name,    /** << Function returning emulator name */
-    &rfid_escape_input,      /** << Function to escape keyboard input */
+    NULL,                    /** << Function to escape keyboard input */
     &rfid_receive,           /** << Function to handled received data */
     &rfid_paint,             /** << Function to repaint the screen */
     &rfid_on_connect,        /** << Function to call upon connection */

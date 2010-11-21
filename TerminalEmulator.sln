@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rfid", "src\emulation\rfid\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vt100", "src\emulation\vt100\vt100.vcxproj", "{30DC2D03-450C-4A3C-A812-CF327A55CD8E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wireless", "src\emulation\wireless\wireless.vcxproj", "{A7BC173D-C5B5-4371-B832-5B65D1A05CA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +27,10 @@ Global
 		{30DC2D03-450C-4A3C-A812-CF327A55CD8E}.Debug|Win32.Build.0 = Debug|Win32
 		{30DC2D03-450C-4A3C-A812-CF327A55CD8E}.Release|Win32.ActiveCfg = Release|Win32
 		{30DC2D03-450C-4A3C-A812-CF327A55CD8E}.Release|Win32.Build.0 = Release|Win32
+		{A7BC173D-C5B5-4371-B832-5B65D1A05CA1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A7BC173D-C5B5-4371-B832-5B65D1A05CA1}.Debug|Win32.Build.0 = Debug|Win32
+		{A7BC173D-C5B5-4371-B832-5B65D1A05CA1}.Release|Win32.ActiveCfg = Release|Win32
+		{A7BC173D-C5B5-4371-B832-5B65D1A05CA1}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

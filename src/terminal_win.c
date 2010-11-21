@@ -171,7 +171,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
         return 0;
     case WM_CHAR:
         {
-            if (ti->dwMode == kModeConnect) {
+            if (ti->dwMode == kModeConnect && EMULATOR_HAS_FUNC(ti->hEmulator[ti->e_idx], escape_input)) {
                 size_t datalen = 0;
                 StringCchLength((LPCTSTR)&wParam, 1024, &datalen);
                 if (SendData(&ti->hCommDev, (LPVOID)&wParam, datalen) != 0) {
@@ -183,7 +183,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
         return 0;
     case WM_KEYUP:
         {
-            if (ti->dwMode == kModeConnect) {
+            if (ti->dwMode == kModeConnect && EMULATOR_HAS_FUNC(ti->hEmulator[ti->e_idx], escape_input)) {
                 LPCSTR data = ti->hEmulator[ti->e_idx]->escape_input(
                         (LPVOID)ti->hEmulator[ti->e_idx]->emulator_data, wParam);
                 if (data == NULL)

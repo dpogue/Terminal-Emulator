@@ -2,10 +2,10 @@
  * @filename wireless.c
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 11 11
+ * @date 2010 11 21
  * @project Terminal Emulator
  *
- * This file contains the implementation of a barebones emulation mode.
+ * This file contains the implementation of a wireless protocol design.
  */
 
 #include "wireless.h"
@@ -15,22 +15,8 @@
  *
  * @returns A user-friendly name for this emulation.
  */
-LPCTSTR none_emulation_name(void) {
+LPCTSTR wireless_emulation_name(void) {
     return TEXT("Wireless");
-}
-
-/**
- * Escapes keyboard input for this emulation mode before passing it to the
- * transmission layer.
- *
- * @param LPVOID data   The emulator data field
- * @param DWORD input   The keyboard input to be escaped.
- *                      This stores the virtual key code that was pressed.
- *
- * @returns NULL if no escaping is needed, otherwise the escaped sequence.
- */
-LPCSTR none_escape_input(LPVOID data, DWORD input) {
-    return NULL;
 }
 
 /**
@@ -42,8 +28,8 @@ LPCSTR none_escape_input(LPVOID data, DWORD input) {
  *
  * @returns int 0 on success, greater than 0 otherwise.
  */
-DWORD none_receive(LPVOID data, BYTE* rx, DWORD len) {
-    NoneData* dat = (NoneData*)data;
+DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
+    /*NoneData* dat = (NoneData*)data;
     LPCTSTR in = (LPCTSTR)rx;
     DWORD i = 0;
 
@@ -69,7 +55,7 @@ DWORD none_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->screen[dat->screenrow][x] = ' ';
             }
         }
-    }
+    }*/
     return 0;
 }
 
@@ -84,8 +70,8 @@ DWORD none_receive(LPVOID data, BYTE* rx, DWORD len) {
  *
  * @returns int 0 on success, greater than 0 otherwise.
  */
-DWORD none_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
-    NoneData* dat = (NoneData*)data;
+DWORD wireless_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
+    /*NoneData* dat = (NoneData*)data;
     TEXTMETRIC tm;
     BYTE y = 0;
     BOOLEAN bGotDC = FALSE;
@@ -108,7 +94,7 @@ DWORD none_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
 
     if (bGotDC) {
         ReleaseDC(hwnd, hdc);
-    }
+    }*/
 
     return 0;
 }
@@ -121,8 +107,8 @@ DWORD none_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
  *
  * @returns int 0 on success, greater than 0 otherwise.
  */
-DWORD none_on_connect(LPVOID data) {
-    NoneData* dat = (NoneData*)data;
+DWORD wireless_on_connect(LPVOID data) {
+    WirelessData* dat = (WirelessData*)data;
     DWORD x = 0;
     DWORD y = 0;
 
@@ -132,33 +118,33 @@ DWORD none_on_connect(LPVOID data) {
         }
     }
     dat->screenrow = 0;
-    dat->screencol = 0;
+
+    dat->state = kIdleState;
+    dat->fdRecv = NULL;
+    dat->fdSend = NULL;
 
     return 0;
 }
 
 Emulator emu_wireless =
 {
-    3,                       /** << Emulator structure version */
-    NULL,                    /** << Emulator data pointer */
-    &none_emulation_name,    /** << Function returning emulator name */
-    &none_escape_input,      /** << Function to escape keyboard input */
-    &none_receive,           /** << Function to handled received data */
-    &none_paint,             /** << Function to repaint the screen */
-    &none_on_connect,        /** << Function to call upon connection */
-    NULL,                    /** << Function to call upon disconnection */
-    NULL,                    /** << Function to override message loop */
-    NULL                     /** << Function to return menu handle */
+    3,                           /** << Emulator structure version */
+    NULL,                        /** << Emulator data pointer */
+    &wireless_emulation_name,    /** << Function returning emulator name */
+    NULL,                        /** << Function to escape keyboard input */
+    &wireless_receive,           /** << Function to handled received data */
+    &wireless_paint,             /** << Function to repaint the screen */
+    &wireless_on_connect,        /** << Function to call upon connection */
+    NULL,                        /** << Function to call upon disconnection */
+    NULL,                        /** << Function to override message loop */
+    NULL                         /** << Function to return menu handle */
 };
 
 Emulator* wireless_init(HWND hwnd) {
     Emulator* e = &emu_wireless;
-    /*NoneData* data = (NoneData*)malloc(sizeof(NoneData));
+    WirelessData* data = (WirelessData*)malloc(sizeof(WirelessData));
 
-    data->screenrow = 0;
-    data->screencol = 0;
-
-    e->emulator_data = data;*/
+    e->emulator_data = data;
 
     return e;
 }

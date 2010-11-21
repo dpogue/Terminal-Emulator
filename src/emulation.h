@@ -45,9 +45,9 @@ typedef struct _emulator {
 } Emulator;
 
 #ifdef __cplusplus
-#define DllExport extern "C" __declspec(dllspec)
+#define DllExport extern "C" __declspec(dllexport)
 #else
-#define DllExport __declspec(dllspec)
+#define DllExport __declspec(dllexport)
 #endif
 
 
