@@ -10,6 +10,12 @@
 
 #include "wireless.h"
 
+void SendByte(HWND hwnd, BYTE value) {
+    BYTE* b = (BYTE*)malloc(sizeof(BYTE));
+    b[0] = value;
+    SendMessage(hwnd, TWM_TXDATA, (WPARAM)b, 1);
+}
+
 /**
  * Provides a name for the emulation mode.
  *
@@ -29,33 +35,89 @@ LPCTSTR wireless_emulation_name(void) {
  * @returns int 0 on success, greater than 0 otherwise.
  */
 DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
-    /*NoneData* dat = (NoneData*)data;
-    LPCTSTR in = (LPCTSTR)rx;
-    DWORD i = 0;
+    WirelessData* dat = (WirelessData*)data;
 
-    for (i = 0; i < len; i++) {
-        dat->screen[dat->screenrow][dat->screencol++] = in[i];
+    if (rx[0] == SOF) {
+        dat->read.frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
+    }
 
-        if (dat->screencol >= 80) {
-            dat->screenrow++;
-            dat->screencol = 0;
+    if (rx[0] == SOF || dat->midFrame) {
+        DWORD i;
+        for (i = 0; i < len && dat->readPos != CRC_SIZE; i++) {
+            ((BYTE*)dat->read.frame)[dat->readPos++] = rx[i];
         }
 
-        if (dat->screenrow >= 24) {
-            DWORD x;
-            DWORD y;
+        dat->midFrame = (dat->readPos != CRC_SIZE);
+        if (dat->midFrame)
+            return 0;
 
-            for (y = 0; y < 23; y++) {
-                TCHAR* below = dat->screen[y+1];
-                StringCchCopy(dat->screen[y], 80, below);
+        rx[0] = 0;
+    }
+
+    dat->readPos = 0;
+    
+    switch (dat->state)
+    {
+    case kIdleState:
+        if (rx[0] == ENQ) {
+            dat->state = kGotENQState;
+            SendByte(dat->hwnd, ACK);
+            dat->state = kReadFrameState;
+        }
+        break;
+    case kWaitFrameACKState:
+        if (rx[0] == RVI) {
+            dat->state = kGotRVIState;
+            SendByte(dat->hwnd, ACK);
+            dat->state = kReadFrameState;
+            break;
+        } else if (rx[0] == ACK) {
+            dat->send.sequence++;
+        }
+        /* Fallthrough */
+    case kSentENQState:
+        if (rx[0] == ACK) {
+            dat->state = kSendingState;
+            if (dat->send.fd!= NULL) {
+                dat->send.frame = build_frame(dat);
+                SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)dat->send.frame, sizeof(WirelessFrame));
+                dat->state = kWaitFrameACKState;
+            } else {
+                SendByte(dat->hwnd, EOT);
+                dat->state = kIdleState;
+            }
+        } else {
+            dat->state = kIdleState;
+        }
+        break;
+    case kReadFrameState:
+        if (rx[0] == EOT) {
+            if (dat->read.fd != NULL) {
+                fclose(dat->read.fd);
+                dat->read.fd = NULL;
+            }
+            dat->state = kIdleState;
+        } else if (rx[0] == ENQ) {
+            dat->state = kGotENQState;
+            SendByte(dat->hwnd, ACK);
+            dat->state = kReadFrameState;
+        } else if (dat->read.frame != NULL) {
+            if (dat->read.fd == NULL) {
+                dat->read.fd = _tfopen(TEXT("E:\\recv.txt"), TEXT("ab"));
             }
 
-            dat->screenrow--;
-            for (x = 0; x < 80; x++) {
-                dat->screen[dat->screenrow][x] = ' ';
+            fwrite(dat->read.frame->data, READ_SIZE, 1, dat->read.fd);
+
+            if (dat->send.fd != NULL) {
+                SendByte(dat->hwnd, RVI);
+                dat->state = kSentENQState;
+            } else {
+                SendByte(dat->hwnd, ACK);
+                dat->state = kReadFrameState;
             }
         }
-    }*/
+        break;
+    }
     return 0;
 }
 
@@ -120,8 +182,19 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->screenrow = 0;
 
     dat->state = kIdleState;
-    dat->fdRecv = NULL;
-    dat->fdSend = NULL;
+    dat->send.fd = NULL;
+    dat->send.sequence = 0;
+
+    dat->read.fd = NULL;
+    dat->read.sequence = 0;
+
+    dat->readPos = 0;
+    dat->midFrame = FALSE;
+
+    SendByte(dat->hwnd, ENQ);
+    dat->state = kSentENQState;
+
+    dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
 
     return 0;
 }
@@ -143,6 +216,7 @@ Emulator emu_wireless =
 Emulator* wireless_init(HWND hwnd) {
     Emulator* e = &emu_wireless;
     WirelessData* data = (WirelessData*)malloc(sizeof(WirelessData));
+    data->hwnd = hwnd;
 
     e->emulator_data = data;
 

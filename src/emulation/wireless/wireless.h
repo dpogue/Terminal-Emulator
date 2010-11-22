@@ -14,8 +14,16 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <strsafe.h>
+#include "../../defines.h"
 #include "../../emulation.h"
+#include "wireless_structures.h"
 #include "wireless_frame.h"
+
+#define RVI 0x11
+#define ACK 0x06
+#define ENQ 0x05
+#define EOT 0x04
+#define SOF 0x01
 
 enum WirelessState {
     kIdleState,
@@ -27,20 +35,4 @@ enum WirelessState {
     kSendFrameACKState,
     kGotRVIState
 };
-
-typedef struct _wireless_data {
-    TCHAR screen[24][81];
-    BYTE screenrow;
-
-    WORD state;
-    FILE* fdSend;
-    FILE* fdRecv;
-} WirelessData;
-
-/**
- * Initialise the default barebones emulator.
- * @implementation emulation_none.c
- */
-Emulator* wireless_init(HWND hwnd);
-
 #endif

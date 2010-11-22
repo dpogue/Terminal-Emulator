@@ -75,11 +75,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="crc.c" />
     <ClCompile Include="wireless.c" />
+    <ClCompile Include="wireless_frame.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="crc.h" />
     <ClInclude Include="wireless.h" />
     <ClInclude Include="wireless_frame.h" />
+    <ClInclude Include="wireless_structures.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
