@@ -132,6 +132,10 @@ generate an escape sequence several characters long.
 
 If the character should not be escaped, this function returns +NULL+.
 
+[NOTE]
+If this function is not implemented (the function pointer in the emulator
+structure is +NULL+), then data will not be sent from keyboard input.
+
 [horizontal]
 Available Since:: version 1
 Arguments::
