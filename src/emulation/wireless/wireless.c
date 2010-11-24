@@ -91,10 +91,22 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         if (rx[0] == ACK) {
             dat->state = kSendingState;
             if (dat->send.fd!= NULL) {
+                WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
+                if (dat->send.frame != NULL) {
+                    static int frame_number = 1;
+                    TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
+
+                    StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d."), frame_number++);
+                    OutputDebugString(dbgmsg);
+                    free(dbgmsg);
+                    free(dat->send.frame);
+                    
+                }
                 dat->send.frame = build_frame(dat);
-                SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)dat->send.frame, sizeof(WirelessFrame));
+                memcpy(tosend, dat->send.frame, sizeof(WirelessFrame));
+                SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
                 dat->state = kWaitFrameACKState;
-                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 5000, &WaitFrameACKTimeout);
+                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
             } else {
                 SendByte(dat->hwnd, EOT);
                 dat->state = kIdleState;
@@ -209,9 +221,11 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->state = kIdleState;
     dat->send.fd = NULL;
     dat->send.sequence = 0;
+    dat->send.frame = NULL;
 
     dat->read.fd = NULL;
     dat->read.sequence = 0;
+    dat->read.frame = NULL;
 
     dat->readPos = 0;
     dat->midFrame = FALSE;
@@ -222,8 +236,8 @@ DWORD wireless_on_connect(LPVOID data) {
         dat->counters[x] = 0;
     }
 
-    //SendByte(dat->hwnd, ENQ);
-    //dat->state = kSentENQState;
+    SendByte(dat->hwnd, ENQ);
+    dat->state = kSentENQState;
 
     dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
 
