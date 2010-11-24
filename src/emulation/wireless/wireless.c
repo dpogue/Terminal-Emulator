@@ -39,19 +39,29 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
 
     if (rx[0] == SOF) {
         dat->read.frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
+        memset(dat->read.frame, 0, CRC_SIZE + 1);
+        dat->readPos = 0;
     }
 
     if (rx[0] == SOF || dat->midFrame) {
         DWORD i;
-        for (i = 0; i < len && dat->readPos != CRC_SIZE; i++) {
+        for (i = 0; i < len && dat->readPos != CRC_SIZE + 1; i++) {
             ((BYTE*)dat->read.frame)[dat->readPos++] = rx[i];
         }
 
-        dat->midFrame = (dat->readPos != CRC_SIZE);
+        dat->midFrame = (dat->readPos != CRC_SIZE + 1);
         if (dat->midFrame)
             return 0;
 
         rx[0] = 0;
+
+        if (!verify_frame(dat->read.frame)) {
+            dat->readPos = 0;
+            free(dat->read.frame);
+            dat->read.frame = NULL;
+            dat->midFrame = FALSE;
+            return 0;
+        }
     }
 
     dat->readPos = 0;
@@ -70,9 +80,11 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
+            dat->send.sequence ^= 0x1;
             break;
         } else if (rx[0] == ACK) {
-            dat->send.sequence++;
+            dat->send.sequence ^= 0x1;
+            KillTimer(dat->hwnd, dat->timeout);
         }
         /* Fallthrough */
     case kSentENQState:
@@ -82,6 +94,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->send.frame = build_frame(dat);
                 SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)dat->send.frame, sizeof(WirelessFrame));
                 dat->state = kWaitFrameACKState;
+                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 5000, &WaitFrameACKTimeout);
             } else {
                 SendByte(dat->hwnd, EOT);
                 dat->state = kIdleState;
@@ -103,10 +116,20 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kReadFrameState;
         } else if (dat->read.frame != NULL) {
             if (dat->read.fd == NULL) {
-                dat->read.fd = _tfopen(TEXT("E:\\recv.txt"), TEXT("ab"));
+                SYSTEMTIME st;
+                TCHAR* filename = (TCHAR*)malloc(sizeof(TCHAR) * 32);
+                GetSystemTime(&st);
+
+                StringCchPrintf(filename, 32, TEXT("E:\\recv_%04d%02d%02d%02d%02d%02d.txt"),
+                        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+                dat->read.fd = _tfopen(filename, TEXT("ab"));
             }
 
-            fwrite(dat->read.frame->data, READ_SIZE, 1, dat->read.fd);
+            if (dat->read.sequence == dat->read.frame->sequence) {
+                fwrite(dat->read.frame->data, READ_SIZE, 1, dat->read.fd);
+                dat->read.sequence ^= 0x1;
+            }
 
             if (dat->send.fd != NULL) {
                 SendByte(dat->hwnd, RVI);
@@ -115,6 +138,8 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 SendByte(dat->hwnd, ACK);
                 dat->state = kReadFrameState;
             }
+            free(dat->read.frame);
+            dat->read.frame = NULL;
         }
         break;
     }
@@ -191,8 +216,14 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->readPos = 0;
     dat->midFrame = FALSE;
 
-    SendByte(dat->hwnd, ENQ);
-    dat->state = kSentENQState;
+    dat->timeout = 0;
+
+    for (x = 0; x < kMaxTimer; x++) {
+        dat->counters[x] = 0;
+    }
+
+    //SendByte(dat->hwnd, ENQ);
+    //dat->state = kSentENQState;
 
     dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
 

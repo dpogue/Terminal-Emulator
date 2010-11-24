@@ -35,4 +35,7 @@ enum WirelessState {
     kSendFrameACKState,
     kGotRVIState
 };
+
+VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time);
+
 #endif

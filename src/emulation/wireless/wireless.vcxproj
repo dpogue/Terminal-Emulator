@@ -78,6 +78,7 @@
     <ClCompile Include="crc.c" />
     <ClCompile Include="wireless.c" />
     <ClCompile Include="wireless_frame.c" />
+    <ClCompile Include="wireless_timeouts.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="crc.h" />

@@ -30,16 +30,25 @@ typedef struct _wireless_comm {
     BYTE sequence;
 } WirelessComm;
 
+enum Timers {
+    kSentENQTimer,
+    kWaitFrameACKTimer,
+    kReadFrameTimer,
+    kMaxTimer
+};
+
 typedef struct _wireless_data {
     TCHAR screen[24][81];
     BYTE screenrow;
     HWND hwnd;
     WORD state;
+    UINT_PTR timeout;
     WirelessComm send;
     WirelessComm read;
 
     BOOLEAN midFrame;
     WORD readPos;
+    BYTE counters[kMaxTimer];
 } WirelessData;
 
 #endif

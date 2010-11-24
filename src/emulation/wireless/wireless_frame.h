@@ -22,4 +22,6 @@ WORD read_file(WirelessData *data, WirelessFrame *wf);
 crc crc_calculate(WirelessFrame *wf);
 WirelessFrame* build_frame(WirelessData *data);
 
+BOOLEAN verify_frame(WirelessFrame* frm);
+
 #endif
