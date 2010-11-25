@@ -70,6 +70,10 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
     {
     case kIdleState:
         if (rx[0] == ENQ) {
+            if (dat->timeout == kRandDelayTimer) {
+                KillTimer(dat->hwnd, dat->timeout);
+                dat->timeout = NULL;
+            }
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
@@ -77,6 +81,8 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         break;
     case kWaitFrameACKState:
         if (rx[0] == RVI) {
+            KillTimer(dat->hwnd, dat->timeout);
+            dat->timeout = NULL;
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
@@ -84,11 +90,12 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             break;
         } else if (rx[0] == ACK) {
             dat->send.sequence ^= 0x1;
-            KillTimer(dat->hwnd, dat->timeout);
         }
         /* Fallthrough */
     case kSentENQState:
         if (rx[0] == ACK) {
+            KillTimer(dat->hwnd, dat->timeout);
+            dat->timeout = NULL;
             dat->state = kSendingState;
             if (dat->send.fd!= NULL) {
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
@@ -111,8 +118,6 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 SendByte(dat->hwnd, EOT);
                 dat->state = kIdleState;
             }
-        } else {
-            dat->state = kIdleState;
         }
         break;
     case kReadFrameState:
@@ -238,7 +243,7 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->readPos = 0;
     dat->midFrame = FALSE;
 
-    dat->timeout = 0;
+    dat->timeout = NULL;
 
     for (x = 0; x < kMaxTimer; x++) {
         dat->counters[x] = 0;
@@ -246,7 +251,7 @@ DWORD wireless_on_connect(LPVOID data) {
 
     SendByte(dat->hwnd, ENQ);
     dat->state = kSentENQState;
-    dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, 200, &RandDelayTimeout);
+    dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, 5000, &SentENQTimeout);
 
     dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
 

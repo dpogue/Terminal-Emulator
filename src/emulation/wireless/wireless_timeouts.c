@@ -13,11 +13,12 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
 
     if (++data->counters[timer] > 3) {
         /* We have a problem here */
-        OutputDebugString(TEXT("Got 3 timeouts! Quitting!"));
+        OutputDebugString(TEXT("Got 3 timeouts! [kSentENQ]\n"));
+        data->state = kIdleState;
         return;
     } else {
         data->state = kIdleState;
-        data->timeout = SetTimer(hwnd, kRandDelayTimer, 200, &RandDelayTimeout);
+        data->timeout = SetTimer(hwnd, kRandDelayTimer, 2000, &RandDelayTimeout);
     }
 }
 
@@ -33,7 +34,8 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
 
     if (++data->counters[timer] > 3) {
         /* We have a problem here */
-        OutputDebugString(TEXT("Got 3 timeouts! Quitting!"));
+        OutputDebugString(TEXT("Got 3 timeouts! [kWaitFrameACK]\n"));
+        data->state = kIdleState;
         return;
     } else {
         WirelessFrame* frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
@@ -51,7 +53,7 @@ VOID CALLBACK RandDelayTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
     TermInfo* ti = (TermInfo*)GetWindowLongPtr(hwnd, 0);
     WirelessData* data = (WirelessData*)ti->hEmulator[ti->e_idx]->emulator_data;
 
-    if (timer != kWaitFrameACKTimer)
+    if (timer != kRandDelayTimer)
         return;
 
     KillTimer(hwnd, timer);
@@ -60,5 +62,5 @@ VOID CALLBACK RandDelayTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
     SendByte(data->hwnd, ENQ);
     data->state = kSentENQState;
 
-    data->timeout = SetTimer(hwnd, kSentENQTimer, 2000, &SentENQTimeout);
+    data->timeout = SetTimer(hwnd, kSentENQTimer, 5000, &SentENQTimeout);
 }

@@ -31,11 +31,11 @@ typedef struct _wireless_comm {
 } WirelessComm;
 
 enum Timers {
-    kSentENQTimer,
+    kSentENQTimer = 1,
     kWaitFrameACKTimer,
     kReadFrameTimer,
     kRandDelayTimer,
-    kMaxTimer
+    kMaxTimer = kRandDelayTimer
 };
 
 typedef struct _wireless_data {
