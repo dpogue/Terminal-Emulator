@@ -34,6 +34,7 @@ enum Timers {
     kSentENQTimer,
     kWaitFrameACKTimer,
     kReadFrameTimer,
+    kRandDelayTimer,
     kMaxTimer
 };
 

@@ -96,7 +96,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                     static int frame_number = 1;
                     TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
 
-                    StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d."), frame_number++);
+                    StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), frame_number++);
                     OutputDebugString(dbgmsg);
                     free(dbgmsg);
                     free(dat->send.frame);
@@ -130,7 +130,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             if (dat->read.fd == NULL) {
                 SYSTEMTIME st;
                 TCHAR* filename = (TCHAR*)malloc(sizeof(TCHAR) * 32);
-                GetSystemTime(&st);
+                GetLocalTime(&st);
 
                 StringCchPrintf(filename, 32, TEXT("E:\\recv_%04d%02d%02d%02d%02d%02d.txt"),
                         st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
@@ -139,7 +139,15 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             }
 
             if (dat->read.sequence == dat->read.frame->sequence) {
-                fwrite(dat->read.frame->data, READ_SIZE, 1, dat->read.fd);
+                static int recv_frame = 1;
+                TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
+
+                StringCchPrintf(dbgmsg, 16, TEXT("Got frame %d.\n"), recv_frame++);
+                OutputDebugString(dbgmsg);
+                free(dbgmsg);
+
+                fwrite(dat->read.frame->data, 1, dat->read.frame->size, dat->read.fd);
+                fflush(dat->read.fd);
                 dat->read.sequence ^= 0x1;
             }
 
@@ -238,6 +246,7 @@ DWORD wireless_on_connect(LPVOID data) {
 
     SendByte(dat->hwnd, ENQ);
     dat->state = kSentENQState;
+    dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, 200, &RandDelayTimeout);
 
     dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
 
