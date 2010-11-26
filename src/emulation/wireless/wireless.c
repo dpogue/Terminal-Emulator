@@ -7,7 +7,7 @@
  *
  * This file contains the implementation of a wireless protocol design.
  */
-
+#include <time.h>
 #include "wireless.h"
 
 void SendByte(HWND hwnd, BYTE value) {
@@ -72,7 +72,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         if (rx[0] == ENQ) {
             if (dat->timeout == kRandDelayTimer) {
                 KillTimer(dat->hwnd, dat->timeout);
-                dat->timeout = NULL;
+                dat->timeout = 0;
             }
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
@@ -82,7 +82,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
     case kWaitFrameACKState:
         if (rx[0] == RVI) {
             KillTimer(dat->hwnd, dat->timeout);
-            dat->timeout = NULL;
+            dat->timeout = 0;
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
@@ -95,7 +95,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
     case kSentENQState:
         if (rx[0] == ACK) {
             KillTimer(dat->hwnd, dat->timeout);
-            dat->timeout = NULL;
+            dat->timeout = 0;
             dat->state = kSendingState;
             if (dat->send.fd!= NULL) {
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
@@ -243,11 +243,13 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->readPos = 0;
     dat->midFrame = FALSE;
 
-    dat->timeout = NULL;
+    dat->timeout = 0;
 
     for (x = 0; x < kMaxTimer; x++) {
         dat->counters[x] = 0;
     }
+
+    srand((UINT)time(NULL));
 
     SendByte(dat->hwnd, ENQ);
     dat->state = kSentENQState;

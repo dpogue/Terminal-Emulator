@@ -14,6 +14,7 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <strsafe.h>
+#include <stdlib.h>
 #include "../../defines.h"
 #include "../../emulation.h"
 #include "wireless_structures.h"

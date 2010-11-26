@@ -9,7 +9,7 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
         return;
 
     KillTimer(hwnd, timer);
-    data->timeout = NULL;
+    data->timeout = 0;
 
     if (++data->counters[timer] > 3) {
         /* We have a problem here */
@@ -17,8 +17,9 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
         data->state = kIdleState;
         return;
     } else {
+        UINT rand_timer = rand() / (RAND_MAX + 1) * (5 - 1) + 1;
         data->state = kIdleState;
-        data->timeout = SetTimer(hwnd, kRandDelayTimer, 2000, &RandDelayTimeout);
+        data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
     }
 }
 
@@ -30,7 +31,7 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
         return;
 
     KillTimer(hwnd, timer);
-    data->timeout = NULL;
+    data->timeout = 0;
 
     if (++data->counters[timer] > 3) {
         /* We have a problem here */
@@ -57,7 +58,7 @@ VOID CALLBACK RandDelayTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
         return;
 
     KillTimer(hwnd, timer);
-    data->timeout = NULL;
+    data->timeout = 0;
 
     SendByte(data->hwnd, ENQ);
     data->state = kSentENQState;

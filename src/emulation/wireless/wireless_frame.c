@@ -42,13 +42,13 @@ WirelessFrame* build_frame(WirelessData *data)
 	wf->start = SOF;
     wf->sequence = data->send.sequence;
 	wf->size = read_file(data, wf); /*wf->data is set in this function*/
-	wf->crc = crc_calculate(wf);
+	wf->crc = (BYTE)crc_calculate(wf);
 
 	return wf;
 }
 
 BOOLEAN verify_frame(WirelessFrame* frm) {
-    BYTE calc = crc_calculate(frm);
+    BYTE calc = (BYTE)crc_calculate(frm);
 
     return (calc == frm->crc);
 }

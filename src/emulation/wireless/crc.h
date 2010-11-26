@@ -16,9 +16,10 @@
 #ifndef _crc_h
 #define _crc_h
 
-
+#ifndef FALSE
 #define FALSE	0
 #define TRUE	!FALSE
+#endif
 
 typedef unsigned short  crc;
 
