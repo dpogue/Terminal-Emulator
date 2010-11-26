@@ -37,7 +37,7 @@ LPCTSTR wireless_emulation_name(void) {
 DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
     WirelessData* dat = (WirelessData*)data;
 
-    if (rx[0] == SOF) {
+    if (rx[0] == SOF && !dat->midFrame) {
         dat->read.frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
         memset(dat->read.frame, 0, CRC_SIZE + 1);
         dat->readPos = 0;
@@ -68,6 +68,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
     
     switch (dat->state)
     {
+        
     case kIdleState:
         if (rx[0] == ENQ) {
             if (dat->timeout == kRandDelayTimer) {
@@ -86,10 +87,10 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
-            dat->send.sequence ^= 0x1;
+            dat->send.sequence++;
             break;
         } else if (rx[0] == ACK) {
-            dat->send.sequence ^= 0x1;
+            dat->send.sequence++;
         }
         /* Fallthrough */
     case kSentENQState:
@@ -97,18 +98,19 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             KillTimer(dat->hwnd, dat->timeout);
             dat->timeout = 0;
             dat->state = kSendingState;
-            if (dat->send.fd!= NULL) {
+            if (dat->send.fd != NULL) {
+                static int frame_number = 0;
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
-                if (dat->send.frame != NULL) {
-                    static int frame_number = 1;
-                    TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
+                TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
 
-                    StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), frame_number++);
-                    OutputDebugString(dbgmsg);
-                    free(dbgmsg);
+                if (dat->send.frame != NULL) {
                     free(dat->send.frame);
-                    
                 }
+
+                StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), frame_number++);
+                OutputDebugString(dbgmsg);
+                free(dbgmsg);
+
                 dat->send.frame = build_frame(dat);
                 memcpy(tosend, dat->send.frame, sizeof(WirelessFrame));
                 SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
@@ -127,6 +129,10 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->read.fd = NULL;
             }
             dat->state = kIdleState;
+            if (dat->send.fd != NULL) {
+                SendByte(dat->hwnd, RVI);
+                dat->state = kSentENQState;
+            }
         } else if (rx[0] == ENQ) {
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
@@ -143,7 +149,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->read.fd = _tfopen(filename, TEXT("ab"));
             }
 
-            if (dat->read.sequence == dat->read.frame->sequence) {
+            if ((dat->read.sequence & 0x1) == (dat->read.frame->sequence & 0x1)) {
                 static int recv_frame = 1;
                 TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
 
@@ -180,7 +186,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
  *                      If this is NULL, GetDC will be called.
  * @param BOOLEAN force Force a repaint of the whole screen if true.
  *
- * @returns int 0 on success, greater than 0 otherwise.
+ * @returns int 0 on succes, greater than 0 otherwise.
  */
 DWORD wireless_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
     /*NoneData* dat = (NoneData*)data;
@@ -249,11 +255,9 @@ DWORD wireless_on_connect(LPVOID data) {
         dat->counters[x] = 0;
     }
 
-    srand((UINT)time(NULL));
-
     SendByte(dat->hwnd, ENQ);
     dat->state = kSentENQState;
-    dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, 5000, &SentENQTimeout);
+    dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, 10000, &SentENQTimeout);
 
     dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
 
@@ -278,6 +282,8 @@ Emulator* wireless_init(HWND hwnd) {
     Emulator* e = &emu_wireless;
     WirelessData* data = (WirelessData*)malloc(sizeof(WirelessData));
     data->hwnd = hwnd;
+
+    srand((UINT)time(NULL));
 
     e->emulator_data = data;
 

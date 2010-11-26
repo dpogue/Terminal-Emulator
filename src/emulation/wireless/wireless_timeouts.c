@@ -17,7 +17,7 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
         data->state = kIdleState;
         return;
     } else {
-        UINT rand_timer = rand() / (RAND_MAX + 1) * (5 - 1) + 1;
+        UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
         data->state = kIdleState;
         data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
     }
@@ -63,5 +63,5 @@ VOID CALLBACK RandDelayTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
     SendByte(data->hwnd, ENQ);
     data->state = kSentENQState;
 
-    data->timeout = SetTimer(hwnd, kSentENQTimer, 5000, &SentENQTimeout);
+    data->timeout = SetTimer(hwnd, kSentENQTimer, 10000, &SentENQTimeout);
 }
