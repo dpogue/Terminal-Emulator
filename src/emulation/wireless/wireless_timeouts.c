@@ -11,7 +11,7 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
     KillTimer(hwnd, timer);
     data->timeout = 0;
 
-    if (++data->counters[timer] > 3) {
+    if (++data->counters[timer] >= 3) {
         /* We have a problem here */
         OutputDebugString(TEXT("Got 3 timeouts! [kSentENQ]\n"));
         data->state = kIdleState;
@@ -33,14 +33,19 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
     KillTimer(hwnd, timer);
     data->timeout = 0;
 
-    if (++data->counters[timer] > 3) {
+    if (++data->counters[timer] >= 3) {
         /* We have a problem here */
         OutputDebugString(TEXT("Got 3 timeouts! [kWaitFrameACK]\n"));
         data->state = kIdleState;
         return;
     } else {
         WirelessFrame* frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
+        TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
         memcpy(frame, data->send.frame, sizeof(WirelessFrame));
+
+        StringCchPrintf(dbgmsg, 16, TEXT("Resent frame %d.\n"), frame->sequence);
+        OutputDebugString(dbgmsg);
+        free(dbgmsg);
 
         data->state = kSendingState;
         SendMessage(hwnd, TWM_TXDATA, (WPARAM)frame, sizeof(WirelessFrame));

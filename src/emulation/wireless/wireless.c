@@ -99,7 +99,6 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->timeout = 0;
             dat->state = kSendingState;
             if (dat->send.fd != NULL) {
-                static int frame_number = 0;
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
                 TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
 
@@ -107,18 +106,28 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                     free(dat->send.frame);
                 }
 
-                StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), frame_number++);
+                dat->send.frame = build_frame(dat);
+                memcpy(tosend, dat->send.frame, sizeof(WirelessFrame));
+
+                StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), tosend->sequence);
                 OutputDebugString(dbgmsg);
                 free(dbgmsg);
 
-                dat->send.frame = build_frame(dat);
-                memcpy(tosend, dat->send.frame, sizeof(WirelessFrame));
-                SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
-                dat->state = kWaitFrameACKState;
-                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
+                if (dat->send.frame->size == 0) {
+                    SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
+                    dat->state = kWaitFrameACKState;
+                    dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
+                } else {
+                    UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+                    SendByte(dat->hwnd, EOT);
+                    dat->state = kIdleState;
+                    dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
+                }
             } else {
+                UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
                 SendByte(dat->hwnd, EOT);
                 dat->state = kIdleState;
+                dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
             }
         }
         break;
@@ -132,6 +141,9 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             if (dat->send.fd != NULL) {
                 SendByte(dat->hwnd, RVI);
                 dat->state = kSentENQState;
+            } else {
+                UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+                dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
             }
         } else if (rx[0] == ENQ) {
             dat->state = kGotENQState;
@@ -160,6 +172,13 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 fwrite(dat->read.frame->data, 1, dat->read.frame->size, dat->read.fd);
                 fflush(dat->read.fd);
                 dat->read.sequence ^= 0x1;
+            }
+
+            if (dat->read.frame->size != READ_SIZE) {
+                if (dat->read.fd != NULL) {
+                    fclose(dat->read.fd);
+                    dat->read.fd = NULL;
+                }
             }
 
             if (dat->send.fd != NULL) {
