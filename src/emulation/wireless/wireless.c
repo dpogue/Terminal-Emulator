@@ -113,16 +113,9 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 OutputDebugString(dbgmsg);
                 free(dbgmsg);
 
-                if (dat->send.frame->size == 0) {
-                    SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
-                    dat->state = kWaitFrameACKState;
-                    dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
-                } else {
-                    UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
-                    SendByte(dat->hwnd, EOT);
-                    dat->state = kIdleState;
-                    dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
-                }
+                SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
+                dat->state = kWaitFrameACKState;
+                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
             } else {
                 UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
                 SendByte(dat->hwnd, EOT);
