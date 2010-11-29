@@ -2,7 +2,7 @@
  * @filename terminal.h
  * @author Darryl Pogue
  * @designer Darryl Pogue
- * @date 2010 11 10
+ * @date 2010 11 28
  * @project Terminal Emulator
  *
  * This file contains the definitions and prototypes for the terminal
@@ -12,51 +12,34 @@
 #define _TERMINAL_H_
 
 #include <Windows.h>
+#include <WindowsX.h>
 #include <tchar.h>
 #include <strsafe.h>
 #include "defines.h"
 #include "serial.h"
 #include "emulation.h"
+#include "emulation_none.h"
+#include "pluginloader.h"
+#include "termctl_private.h"
+#include "connectdlg.h"
+#include "prefsdlg.h"
 
-/* MENU ITEM ID DEFINES */
+/* Menu Item constants */
 #define ID_EXIT 100
 #define ID_DISCONNECT 101
 #define ID_CONNECT 102
-#define ID_COM_START 110
+#define ID_PREFERENCES 103
+#define ID_ABOUT 105
+
 #define ID_EMU_START 150
+#define ID_EMU_ONE 151
+#define ID_EMU_TWO 152
 
-/* ENUMERATION DECLARATIONS */
-enum modes {
-    kModeCommand = 0,
-    kModeConnect = 1,
-};
-
-/**
- * The TermInfo structure contains information regarding the current state of
- * the terminal emulator application.
- *
- * @member DWORD dwMode     The current application mode (command or connect)
- * @member HWND hwnd        The handle to the application window
- * @member HANDLE hCommDev  The handle to the serial port device
- * @member HANDLE hReadLoop The handle to the read thread
- * @member TCHAR screen[][] The screen buffer (25 lines, 80 chars per line)
- */
-typedef struct _TermInfo {
-    DWORD dwMode;
-    HWND hwnd;
-    HANDLE hCommDev;
-    HANDLE hReadLoop;
-    Emulator** hEmulator;
-    size_t e_idx;
-    size_t e_count;
-} TermInfo;
-
-/* FUNCTION PROTOTYPES */
-/**
- * Message handling for Windows messages.
- * @implementation terminal_win.c
- */
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+typedef struct _terminal_modes {
+    DWORD dwCount;
+    Emulator** lpEmulators;
+    HWND hPrefs;
+} TerminalModes;
 
 /**
  * Reports a system error to the user in a MessageBox.
@@ -65,27 +48,93 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void ReportError(DWORD dwError);
 
 /**
- * Enters command mode, closing any open ports and enabling the connect menu.
+ * Prompts for connection parameters and establishes a connection.
  * @implementation terminal.c
  */
-void CommandMode(HWND hwnd);
+VOID Connect(HWND hwnd);
 
 /**
- * Enters connect mode, connecting to the specified port number.
+ * Safely closes an open connection.
  * @implementation terminal.c
  */
-void ConnectMode(HWND hwnd, DWORD port);
+VOID Disconnect(HWND hwnd);
 
 /**
- * Find all of the emulation plugins and probe them.
- * @implementation terminal.c
+ * Registers the window class with the system.
+ * @implementation terminal_win.c
  */
-Emulator* FindPlugins(HWND hwnd, TermInfo* ti);
+DWORD RegisterWindowClass(HINSTANCE hInstance);
 
 /**
- * Load an emulation mode from a plugin.
- * @implementation terminal.c
+ * Creates the terminal window and initialises the instance data.
+ * @implementation terminal_win.c
  */
-void LoadPlugin(HWND hwnd, Emulator* emu, DWORD i);
+HWND CreateTerminal(HINSTANCE hInstance);
+
+/**
+ * Pull messages off of the queue and send them for parsing.
+ * @implementation terminal_win.c
+ */
+VOID MessageLoop(HWND hwnd);
+
+/**
+ * Message handling for Windows messages.
+ * @implementation terminal_win.c
+ */
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+/**
+ * Message handler for the WM_PAINT message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnPaint(HWND hwnd);
+
+/**
+ * Message handler for the WM_GETMINMAXINFO message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnGetMinMaxInfo(HWND hwnd, LPMINMAXINFO lpInfo);
+
+/**
+ * Message handler for the WM_SIZE message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnSize(HWND hwnd, UINT state, INT cx, INT cy);
+
+/**
+ * Message handler for the WM_COMMAND message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnCommand(HWND hwnd, INT id, HWND ctl, UINT notify);
+
+/**
+ * Message handler for the WM_HSCROLL message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnHScroll(HWND hwnd, HWND hwndCtl, UINT code, INT pos);
+
+/**
+ * Message handler for the WM_VSCROLL message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnVScroll(HWND hwnd, HWND hwndCtl, UINT code, INT pos);
+
+/**
+ * Message handler for the WM_KEYUP message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnKey(HWND hwnd, UINT vk, BOOL fDown, INT repeat, UINT flags);
+
+/**
+ * Message handler for the WM_CHAR message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnChar(HWND hwnd, TCHAR c);
+
+/**
+ * Message handler for the WM_DESTROY message.
+ * @implementation terminal_win.c
+ */
+VOID Terminal_OnDestroy(HWND hwnd);
 
 #endif

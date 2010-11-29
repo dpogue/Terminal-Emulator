@@ -12,11 +12,12 @@
 
 #define APPNAME TEXT("Terminal Emulator")
 
-/* APPLICATION MESSAGE ID DEFINES */
+/* Application message ID defines */
 #define TWM_RXDATA (WM_APP + 1)
 #define TWM_TXDATA (WM_APP + 2)
+#define TWM_DISCONNECT (WM_APP + 3)
 
 typedef struct _emulator Emulator;
-typedef struct _TermInfo TermInfo;
+//typedef struct _TermInfo TermInfo;
 
 #endif

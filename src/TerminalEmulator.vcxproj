@@ -75,16 +75,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="connectdlg.c" />
     <ClCompile Include="emulation_none.c" />
+    <ClCompile Include="pluginloader.c" />
+    <ClCompile Include="prefsdlg.c" />
     <ClCompile Include="serial.c" />
+    <ClCompile Include="termctl.c" />
     <ClCompile Include="terminal.c" />
     <ClCompile Include="terminal_win.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="connectdlg.h" />
     <ClInclude Include="defines.h" />
     <ClInclude Include="emulation.h" />
     <ClInclude Include="emulation_none.h" />
+    <ClInclude Include="pluginloader.h" />
+    <ClInclude Include="prefsdlg.h" />
     <ClInclude Include="serial.h" />
+    <ClInclude Include="termctl.h" />
+    <ClInclude Include="termctl_private.h" />
     <ClInclude Include="terminal.h" />
   </ItemGroup>
   <ItemGroup>

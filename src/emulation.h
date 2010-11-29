@@ -12,6 +12,7 @@
 
 #include <Windows.h>
 #include <tchar.h>
+#include "termctl.h"
 
 typedef struct _emulator {
     DWORD dwVersion;

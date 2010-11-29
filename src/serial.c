@@ -18,10 +18,10 @@
  *                      serial port connection.
  * @returns int 0 on success, >0 otherwise
  */
-int OpenPort(const LPCTSTR port, HANDLE* fd, HWND hwnd) {
+int OpenPort(const LPCTSTR port, HANDLE* fd, HWND hwnd, BOOLEAN config) {
     COMMPROP cprops;
     DCB dcb;
-    COMMCONFIG config;
+    COMMCONFIG cfg;
 
     /* Create the file descriptor handle */
     if ((*fd = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
@@ -44,20 +44,20 @@ int OpenPort(const LPCTSTR port, HANDLE* fd, HWND hwnd) {
         return 4;
     }
 
-    config.dwSize = sizeof(COMMCONFIG);
-    config.wVersion = 0x1;
-    config.dcb = dcb;
-    config.dwProviderSubType = cprops.dwProvSubType;
-    config.dwProviderOffset = 0;
-    config.dwProviderSize = 0;
+    cfg.dwSize = sizeof(COMMCONFIG);
+    cfg.wVersion = 0x1;
+    cfg.dcb = dcb;
+    cfg.dwProviderSubType = cprops.dwProvSubType;
+    cfg.dwProviderOffset = 0;
+    cfg.dwProviderSize = 0;
 
     /* Show the port configuration dialog */
-    if (!CommConfigDialog(port, hwnd, &config)) {
+    if (config && !CommConfigDialog(port, hwnd, &cfg)) {
         return 5;
     }
 
     /* Set the DCB to the config settings */
-    if (!SetCommState(*fd, &config.dcb)) {
+    if (!SetCommState(*fd, &cfg.dcb)) {
         return 6;
     }
 

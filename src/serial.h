@@ -19,7 +19,7 @@
  * Initialises a serial port handle for reading and writing
  * @implementation serial.c
  */
-int OpenPort(const LPCTSTR port, HANDLE* fd, HWND hwnd);
+int OpenPort(const LPCTSTR port, HANDLE* fd, HWND hwnd, BOOLEAN config);
 
 /**
  * Sends data out the serial port pointed to by the handle fd.
