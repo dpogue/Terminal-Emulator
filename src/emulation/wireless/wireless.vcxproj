@@ -78,13 +78,18 @@
     <ClCompile Include="crc.c" />
     <ClCompile Include="wireless.c" />
     <ClCompile Include="wireless_frame.c" />
+    <ClCompile Include="wireless_gui.c" />
     <ClCompile Include="wireless_timeouts.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="crc.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="wireless.h" />
     <ClInclude Include="wireless_frame.h" />
     <ClInclude Include="wireless_structures.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wireless.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

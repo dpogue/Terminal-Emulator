@@ -50,6 +50,10 @@ typedef struct _wireless_data {
     BOOLEAN midFrame;
     WORD readPos;
     BYTE counters[kMaxTimer];
+    HWND hDlg;
+    INT nAcks;
+    INT nErrors;
+    INT nPackets;
 } WirelessData;
 
 #endif

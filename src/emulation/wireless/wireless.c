@@ -9,6 +9,7 @@
  */
 #include <time.h>
 #include "wireless.h"
+#include "resource.h"
 
 void SendByte(HWND hwnd, BYTE value) {
     BYTE* b = (BYTE*)malloc(sizeof(BYTE));
@@ -73,6 +74,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         if (rx[0] == ENQ) {
             if (dat->timeout == kRandDelayTimer) {
                 KillTimer(dat->hwnd, dat->timeout);
+                dat->counters[dat->timeout] = 0;
                 dat->timeout = 0;
             }
             dat->state = kGotENQState;
@@ -83,6 +85,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
     case kWaitFrameACKState:
         if (rx[0] == RVI) {
             KillTimer(dat->hwnd, dat->timeout);
+            dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
@@ -95,8 +98,14 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         /* Fallthrough */
     case kSentENQState:
         if (rx[0] == ACK) {
+            TCHAR ack_count[8];
+
             KillTimer(dat->hwnd, dat->timeout);
+            dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
+            StringCchPrintf(ack_count, 8, TEXT("%d"), ++dat->nAcks);
+            SetDlgItemText(dat->hDlg, NUMBER_OF_ACKS, ack_count);
+
             dat->state = kSendingState;
             if (dat->send.fd != NULL) {
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
@@ -121,6 +130,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 SendByte(dat->hwnd, EOT);
                 dat->state = kIdleState;
                 dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
+                SetClassLong(dat->hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_ARROW));
             }
         }
         break;
@@ -241,6 +251,8 @@ DWORD wireless_on_connect(LPVOID data) {
     WirelessData* dat = (WirelessData*)data;
     DWORD x = 0;
     DWORD y = 0;
+    UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+    HINSTANCE hInst = (HINSTANCE)GetModuleHandle(TEXT("wireless.dll"));
 
     for (y = 0; y < 24; y++) {
         for (x = 0; x <= 80; x++) {
@@ -267,11 +279,12 @@ DWORD wireless_on_connect(LPVOID data) {
         dat->counters[x] = 0;
     }
 
-    SendByte(dat->hwnd, ENQ);
-    dat->state = kSentENQState;
-    dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, 10000, &SentENQTimeout);
+    dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
 
-    dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
+    //dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
+
+    dat->hDlg = CreateDialog(hInst, MAKEINTRESOURCE(StatDialog), dat->hwnd, (DLGPROC)WirelessDlgProc);
+    ShowWindow(dat->hDlg, SW_SHOW);
 
     return 0;
 }
