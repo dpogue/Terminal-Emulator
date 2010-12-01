@@ -57,6 +57,10 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         rx[0] = 0;
 
         if (!verify_frame(dat->read.frame)) {
+            TCHAR err_count[8];
+            StringCchPrintf(err_count, 8, TEXT("%d"), ++dat->nErrors);
+            SetDlgItemText(dat->hDlg, NUMBER_OF_NAKS, err_count);
+
             dat->readPos = 0;
             free(dat->read.frame);
             dat->read.frame = NULL;
@@ -280,10 +284,11 @@ DWORD wireless_on_connect(LPVOID data) {
     }
 
     dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
+    dat->nAcks = 0;
+    dat->nErrors = 0;
+    dat->nPackets = 0;
 
-    //dat->send.fd = _tfopen(TEXT("E:\\test.txt"), TEXT("rb"));
-
-    dat->hDlg = CreateDialog(hInst, MAKEINTRESOURCE(StatDialog), dat->hwnd, (DLGPROC)WirelessDlgProc);
+    dat->hDlg = CreateDialogParam(hInst, MAKEINTRESOURCE(StatDialog), dat->hwnd, (DLGPROC)WirelessDlgProc, (LPARAM)dat);
     ShowWindow(dat->hDlg, SW_SHOW);
 
     return 0;
