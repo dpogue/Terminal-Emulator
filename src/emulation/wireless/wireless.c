@@ -63,7 +63,11 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             StringCchPrintf(err_count, 8, TEXT("%d"), ++dat->nErrors);
             SetDlgItemText(dat->hDlg, NUMBER_OF_NAKS, err_count);
 
-            StringCchPrintf(ber_value, 8, TEXT("%f%%"), (DOUBLE)(dat->nErrors) / dat->nPackets);
+            if (dat->nPackets == 0) {
+                StringCchPrintf(ber_value, 8, TEXT("0.00000%"));
+            } else {
+                StringCchPrintf(ber_value, 8, TEXT("%f%"), ((DOUBLE)(dat->nErrors) / dat->nPackets) * 100);
+            }
             SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
 
             dat->readPos = 0;
@@ -183,9 +187,16 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kReadFrameState;
             dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
         } else if (dat->read.frame != NULL) {
+            TCHAR ber_value[16];
             KillTimer(dat->hwnd, dat->timeout);
             dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
+            if (dat->nPackets == 0) {
+                StringCchPrintf(ber_value, 8, TEXT("0.00000%"));
+            } else {
+                StringCchPrintf(ber_value, 8, TEXT("%f%"), ((DOUBLE)(dat->nErrors) / dat->nPackets) * 100);
+            }
+            SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
             if (dat->read.fd == NULL) {
                 SYSTEMTIME st;
                 TCHAR* filename = (TCHAR*)malloc(sizeof(TCHAR) * 32);
