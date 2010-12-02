@@ -18,10 +18,11 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
 		//SetClassLong(data->hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_ARROW));
   //      return;
   //  } else {
+    {
         UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
         data->state = kIdleState;
         data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
-    //}
+    }
 }
 
 VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {

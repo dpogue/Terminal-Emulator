@@ -8,6 +8,7 @@
  * This file contains the implementation of a wireless protocol design.
  */
 #include <time.h>
+#include <WindowsX.h>
 #include "wireless.h"
 #include "resource.h"
 
@@ -58,8 +59,12 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
 
         if (!verify_frame(dat->read.frame)) {
             TCHAR err_count[8];
+            TCHAR ber_value[16];
             StringCchPrintf(err_count, 8, TEXT("%d"), ++dat->nErrors);
             SetDlgItemText(dat->hDlg, NUMBER_OF_NAKS, err_count);
+
+            StringCchPrintf(ber_value, 8, TEXT("%f%%"), (DOUBLE)(dat->nErrors) / dat->nPackets);
+            SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
 
             dat->readPos = 0;
             free(dat->read.frame);
@@ -78,7 +83,6 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
         if (rx[0] == ENQ) {
             if (dat->timeout == kRandDelayTimer) {
                 KillTimer(dat->hwnd, dat->timeout);
-                dat->counters[dat->timeout] = 0;
                 dat->timeout = 0;
             }
             dat->state = kGotENQState;
@@ -138,8 +142,14 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->state = kWaitFrameACKState;
                 dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
             } else {
+                DWORD e;
                 UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
                 SendByte(dat->hwnd, EOT);
+                e = IsWindow(dat->hDlg);
+                SetLastError(0);
+                Button_Enable(GetDlgItem(dat->hDlg, SEND_FILE), TRUE);
+                Button_Enable(GetDlgItem(dat->hDlg, SELECT_FILE), TRUE);
+                e = GetLastError();
                 dat->state = kIdleState;
                 dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
                 SetClassLong(dat->hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_ARROW));
@@ -152,6 +162,9 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 fclose(dat->read.fd);
                 dat->read.fd = NULL;
             }
+            KillTimer(dat->hwnd, dat->timeout);
+            dat->counters[dat->timeout] = 0;
+            dat->timeout = 0;
             dat->state = kIdleState;
             if (dat->send.fd != NULL) {
                 SendByte(dat->hwnd, ENQ);
@@ -162,11 +175,17 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
             }
         } else if (rx[0] == ENQ) {
+            KillTimer(dat->hwnd, dat->timeout);
+            dat->counters[dat->timeout] = 0;
+            dat->timeout = 0;
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
             dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
         } else if (dat->read.frame != NULL) {
+            KillTimer(dat->hwnd, dat->timeout);
+            dat->counters[dat->timeout] = 0;
+            dat->timeout = 0;
             if (dat->read.fd == NULL) {
                 SYSTEMTIME st;
                 TCHAR* filename = (TCHAR*)malloc(sizeof(TCHAR) * 32);
@@ -275,6 +294,7 @@ DWORD wireless_on_connect(LPVOID data) {
             dat->screen[y][x] = (x == 80) ? '\0' : ' ';
         }
     }
+    x = (DWORD)&(dat->hDlg);
     dat->screenrow = 0;
 
     dat->state = kIdleState;
@@ -300,7 +320,8 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->nErrors = 0;
     dat->nPackets = 0;
 
-    dat->hDlg = CreateDialogParam(hInst, MAKEINTRESOURCE(StatDialog), dat->hwnd, (DLGPROC)WirelessDlgProc, (LPARAM)dat);
+    dat->hDlg = CreateDialogParam(hInst, MAKEINTRESOURCE(StatDialog), dat->hwnd,
+                                    (DLGPROC)WirelessDlgProc, (LPARAM)dat);
     ShowWindow(dat->hDlg, SW_SHOW);
 
     return 0;

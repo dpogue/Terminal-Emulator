@@ -49,6 +49,8 @@ WirelessFrame* build_frame(WirelessData *data)
 
 BOOLEAN verify_frame(WirelessFrame* frm) {
     BYTE calc = (BYTE)crc_calculate(frm);
-
+    UINT r = rand() % 25 + 1;
+    if (r == 15)
+        calc = 0x00;
     return (calc == frm->crc);
 }

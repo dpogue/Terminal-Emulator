@@ -23,7 +23,7 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 			SetDlgItemText(hDlg, NUMBER_OF_ACKS, TEXT("0"));
 			SetDlgItemText(hDlg, NUMBER_OF_NAKS, TEXT("0"));
         }
-        return TRUE;
+        break;
     case WM_COMMAND:
         {
             switch (LOWORD(wParam)) {
@@ -82,6 +82,7 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
         }
     case WM_CLOSE:
         SendMessage(GetParent(hDlg), TWM_DISCONNECT, 0, 0);
+        SetClassLong(hDlg, GCL_WNDPROC, NULL);
         DestroyWindow(hDlg);
         return TRUE;
     }
