@@ -229,6 +229,10 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message,
             }
         }
         return 0;
+    case TWM_DISCONNECT:
+        CommandMode(hwnd);
+        InvalidateRect(hwnd, NULL, TRUE);
+        return 0;
     case WM_DESTROY:
         {
             CommandMode(hwnd);

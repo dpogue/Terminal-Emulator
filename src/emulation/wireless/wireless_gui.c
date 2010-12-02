@@ -18,6 +18,10 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             g->oldProc = oldProc;
 
             SetWindowLongPtr(hDlg, GWL_USERDATA, (LONG_PTR)g);
+
+			SetDlgItemText(hDlg, IDC_EDIT2, TEXT("0"));
+			SetDlgItemText(hDlg, NUMBER_OF_ACKS, TEXT("0"));
+			SetDlgItemText(hDlg, NUMBER_OF_NAKS, TEXT("0"));
         }
         return TRUE;
     case WM_COMMAND:
@@ -67,6 +71,8 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                     if (filename != NULL) {
                         dat->send.fd = _tfopen(filename, TEXT("rb"));
                         SetClassLong(hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_WAIT));
+                        Button_Enable(GetDlgItem(hDlg, SEND_FILE), FALSE);
+                        Button_Enable(GetDlgItem(hDlg, SELECT_FILE), FALSE);
                     }
                 }
                 return TRUE;
@@ -75,36 +81,11 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
     case WM_CLOSE:
-        ShowWindow(hDlg, SW_HIDE);
+        SendMessage(GetParent(hDlg), TWM_DISCONNECT, 0, 0);
+        DestroyWindow(hDlg);
+        return TRUE;
     }
     return FALSE;
-
-#if 0
-	static HWND parent;
-	static HMENU hMenu;
-	RECT rc, rcDlg, rcOwner; 
-	int id = GetWindowLong (hwnd, GWL_ID);
-
-	switch(msg){
-	case WM_COMMAND:
-		switch ( LOWORD( wParam ) ) {
-		case SELECT_FILE:
-		case SEND_FILE:
-			/* add send file */
-			break;
-		case WM_DESTROY://how to handle a destroy (close window app) msg
-			PostQuitMessage(0);
-			return 0;
-		case WM_CLOSE:
-			PostQuitMessage(0);
-			return 0;
-		default:
-			return FALSE;
-		}
-		return DefWindowProc(hwnd, msg, wParam, lParam);
-	} 
-	return DefWindowProc(hwnd, msg, wParam, lParam);
-#endif
 }
 
 LRESULT CALLBACK DragDropProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {

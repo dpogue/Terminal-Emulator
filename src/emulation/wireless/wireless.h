@@ -42,6 +42,7 @@ void SendByte(HWND hwnd, BYTE value);
 
 VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time);
 VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time);
+VOID CALLBACK ReadFrameTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time);
 VOID CALLBACK RandDelayTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time);
 
 BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam);

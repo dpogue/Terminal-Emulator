@@ -84,16 +84,21 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
+            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
         }
         break;
     case kWaitFrameACKState:
         if (rx[0] == RVI) {
+            TCHAR ack_count[8];
             KillTimer(dat->hwnd, dat->timeout);
             dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
+            StringCchPrintf(ack_count, 8, TEXT("%d"), ++dat->nAcks);
+            SetDlgItemText(dat->hDlg, NUMBER_OF_ACKS, ack_count);
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
+            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
             dat->send.sequence++;
             break;
         } else if (rx[0] == ACK) {
@@ -114,6 +119,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             if (dat->send.fd != NULL) {
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
                 TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
+				TCHAR packets[8];
 
                 if (dat->send.frame != NULL) {
                     free(dat->send.frame);
@@ -121,6 +127,8 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
 
                 dat->send.frame = build_frame(dat);
                 memcpy(tosend, dat->send.frame, sizeof(WirelessFrame));
+				StringCchPrintf(packets, 8, TEXT("%d"), ++dat->nPackets);
+				SetDlgItemText(dat->hDlg, IDC_EDIT2, packets);
 
                 StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), tosend->sequence);
                 OutputDebugString(dbgmsg);
@@ -146,8 +154,9 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             }
             dat->state = kIdleState;
             if (dat->send.fd != NULL) {
-                SendByte(dat->hwnd, RVI);
+                SendByte(dat->hwnd, ENQ);
                 dat->state = kSentENQState;
+                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
             } else {
                 UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
                 dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
@@ -156,6 +165,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
+            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
         } else if (dat->read.frame != NULL) {
             if (dat->read.fd == NULL) {
                 SYSTEMTIME st;
@@ -191,9 +201,11 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             if (dat->send.fd != NULL) {
                 SendByte(dat->hwnd, RVI);
                 dat->state = kSentENQState;
+                dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, 10000, &SentENQTimeout);
             } else {
                 SendByte(dat->hwnd, ACK);
                 dat->state = kReadFrameState;
+                dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
             }
             free(dat->read.frame);
             dat->read.frame = NULL;
@@ -294,6 +306,25 @@ DWORD wireless_on_connect(LPVOID data) {
     return 0;
 }
 
+/**
+ * Allows the emulation plugin to override some of the default message loop
+ * handling.
+ *
+ * @param LPVOID data   The emulation mode data
+ * @param LPMSG msg     The pointer to the window message
+ * @returns BOOLEAN     TRUE if the message was handled,
+ *                      FALSE otherwise
+ */
+BOOLEAN wireless_wnd_proc(LPVOID data, LPMSG msg) {
+    WirelessData* dat = (WirelessData*)data;
+
+    if (IsWindow(dat->hDlg) && IsDialogMessage(dat->hDlg, msg)) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 Emulator emu_wireless =
 {
     3,                           /** << Emulator structure version */
@@ -304,7 +335,7 @@ Emulator emu_wireless =
     &wireless_paint,             /** << Function to repaint the screen */
     &wireless_on_connect,        /** << Function to call upon connection */
     NULL,                        /** << Function to call upon disconnection */
-    NULL,                        /** << Function to override message loop */
+    &wireless_wnd_proc,          /** << Function to override message loop */
     NULL                         /** << Function to return menu handle */
 };
 
