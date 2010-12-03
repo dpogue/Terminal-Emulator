@@ -62,14 +62,14 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             TCHAR err_count[8];
             TCHAR ber_value[16];
             StringCchPrintf(err_count, 8, TEXT("%d"), ++dat->nErrors);
-            SetDlgItemText(dat->hDlg, NUMBER_OF_NAKS, err_count);
+            SetDlgItemText(dat->hDlg, IDC_PACKETS_REREAD, err_count);
 
             if (dat->nReadPackets == 0) {
                 StringCchPrintf(ber_value, 8, TEXT("100.00000\%"));
             } else {
                 StringCchPrintf(ber_value, 8, TEXT("%f\%"), ((DOUBLE)(dat->nErrors) / dat->nReadPackets) * 100);
             }
-            SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
+            SetDlgItemText(dat->hDlg, IDC_READ_ERROR, ber_value);
 
             dat->readPos = 0;
             free(dat->read.frame);
@@ -103,7 +103,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
             StringCchPrintf(ack_count, 8, TEXT("%d"), ++dat->nAcks);
-            SetDlgItemText(dat->hDlg, NUMBER_OF_ACKS, ack_count);
+            SetDlgItemText(dat->hDlg, IDC_ACKS_READ, ack_count);
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
@@ -122,13 +122,14 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
             StringCchPrintf(ack_count, 8, TEXT("%d"), ++dat->nAcks);
-            SetDlgItemText(dat->hDlg, NUMBER_OF_ACKS, ack_count);
+            SetDlgItemText(dat->hDlg, IDC_ACKS_READ, ack_count);
 
             dat->state = kSendingState;
             if (dat->send.fd != NULL) {
                 WirelessFrame* tosend = (WirelessFrame*)malloc(sizeof(WirelessFrame));
                 TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 16);
 				TCHAR packets[8];
+                TCHAR ber_value[16];
 
                 if (dat->send.frame != NULL) {
                     free(dat->send.frame);
@@ -137,7 +138,14 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
                 dat->send.frame = build_frame(dat);
                 memcpy(tosend, dat->send.frame, sizeof(WirelessFrame));
 				StringCchPrintf(packets, 8, TEXT("%d"), ++dat->nPackets);
-				SetDlgItemText(dat->hDlg, IDC_EDIT2, packets);
+				SetDlgItemText(dat->hDlg, IDC_PACKETS_SENT, packets);
+
+                if (dat->nPackets == 0) {
+                    StringCchPrintf(ber_value, 8, TEXT("0.00000"));
+                } else {
+                    StringCchPrintf(ber_value, 8, TEXT("%f"), ((DOUBLE)(dat->nRetransmissions) / dat->nPackets) * 100);
+                }
+                SetDlgItemText(dat->hDlg, IDC_SENT_ERROR, ber_value);
 
                 StringCchPrintf(dbgmsg, 16, TEXT("Sent frame %d.\n"), tosend->sequence);
                 OutputDebugString(dbgmsg);
@@ -194,14 +202,14 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
             StringCchPrintf(pck_count, 8, TEXT("%d"), ++dat->nReadPackets);
-            SetDlgItemText(dat->hDlg, READ_PACKETS, pck_count);
+            SetDlgItemText(dat->hDlg, IDC_PACKETS_READ, pck_count);
 
             if (dat->nReadPackets == 0) {
-                StringCchPrintf(ber_value, 8, TEXT("0.00000%%"));
+                StringCchPrintf(ber_value, 8, TEXT("0.00000"));
             } else {
-                StringCchPrintf(ber_value, 8, TEXT("%f%%"), ((DOUBLE)(dat->nErrors) / dat->nReadPackets) * 100);
+                StringCchPrintf(ber_value, 8, TEXT("%f"), ((DOUBLE)(dat->nErrors) / dat->nReadPackets) * 100);
             }
-            SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
+            SetDlgItemText(dat->hDlg, IDC_READ_ERROR, ber_value);
             if (dat->read.fd == NULL) {
                 SYSTEMTIME st;
                 TCHAR* filename = (TCHAR*)malloc(sizeof(TCHAR) * 32);

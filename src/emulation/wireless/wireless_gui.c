@@ -18,10 +18,6 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
             g->oldProc = oldProc;
 
             SetWindowLongPtr(hDlg, GWL_USERDATA, (LONG_PTR)g);
-
-			SetDlgItemText(hDlg, IDC_EDIT2, TEXT("0"));
-			SetDlgItemText(hDlg, NUMBER_OF_ACKS, TEXT("0"));
-			SetDlgItemText(hDlg, NUMBER_OF_NAKS, TEXT("0"));
         }
         break;
     case WM_COMMAND:
@@ -75,6 +71,11 @@ BOOL CALLBACK WirelessDlgProc(HWND hDlg, UINT msg, WPARAM wParam, LPARAM lParam)
                         Button_Enable(GetDlgItem(hDlg, SELECT_FILE), FALSE);
                     }
                 }
+                return TRUE;
+            case IDC_DISCONNECT:
+                SendMessage(GetParent(hDlg), TWM_DISCONNECT, 0, 0);
+                SetClassLong(hDlg, GCL_WNDPROC, NULL);
+                DestroyWindow(hDlg);
                 return TRUE;
             default:
                 return FALSE;

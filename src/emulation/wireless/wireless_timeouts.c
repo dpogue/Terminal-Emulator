@@ -1,4 +1,5 @@
 #include "wireless.h"
+#include "resource.h"
 #include "../../terminal.h"
 
 VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
@@ -33,6 +34,8 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
         return;
     } else {
         WirelessFrame* frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
+        TCHAR rt_count[8];
+        TCHAR ber_value[16];
         TCHAR* dbgmsg = (TCHAR*)malloc(sizeof(TCHAR) * 24);
         memcpy(frame, data->send.frame, sizeof(WirelessFrame));
 
@@ -42,7 +45,16 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
 
         data->state = kSendingState;
         SendMessage(hwnd, TWM_TXDATA, (WPARAM)frame, sizeof(WirelessFrame));
-        data->nRetransmissions++;
+        StringCchPrintf(rt_count, 8, TEXT("%d"), ++data->nRetransmissions);
+        SetDlgItemText(data->hDlg, IDC_PACKETS_RESENT, rt_count);
+
+        if (data->nPackets == 0) {
+            StringCchPrintf(ber_value, 8, TEXT("0.00000"));
+        } else {
+            StringCchPrintf(ber_value, 8, TEXT("%f"), ((DOUBLE)(data->nRetransmissions) / data->nPackets) * 100);
+        }
+        SetDlgItemText(data->hDlg, IDC_SENT_ERROR, ber_value);
+
         data->state = kWaitFrameACKState;
 
         data->timeout = SetTimer(hwnd, kWaitFrameACKTimer, TO_FRAME, &WaitFrameACKTimeout);
