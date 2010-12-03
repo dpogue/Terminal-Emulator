@@ -21,7 +21,7 @@
 #define TRUE	!FALSE
 #endif
 
-typedef unsigned short  crc;
+typedef BYTE  crc;
 
 #define CRC_NAME			"CRC-CCITT"
 #define POLYNOMIAL			0x107

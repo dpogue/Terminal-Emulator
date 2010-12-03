@@ -31,7 +31,6 @@ WORD read_file(WirelessData *data, WirelessFrame *wf)
 
 crc crc_calculate(WirelessFrame *wf)
 {
-	crcInit();
 	return crcFast((unsigned char*)wf,CRC_SIZE);
 }
 

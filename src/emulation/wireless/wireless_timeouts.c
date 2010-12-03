@@ -19,7 +19,7 @@ VOID CALLBACK SentENQTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) {
   //      return;
   //  } else {
     {
-        UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+        UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
         data->state = kIdleState;
         data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
     }
@@ -36,11 +36,14 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
     data->timeout = 0;
 
     if (++data->counters[timer] >= 3) {
+        UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
         /* We have a problem here */
         OutputDebugString(TEXT("Got 3 timeouts! [kWaitFrameACK]\n"));
-		fclose(data->send.fd);
-		SetClassLong(data->hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_ARROW));
+        MessageBox(hwnd, TEXT("Got 3 timeouts sending a frame"), TEXT("ERROR"), 0);
+		//fclose(data->send.fd);
+		//SetClassLong(data->hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_ARROW));
         data->state = kIdleState;
+        data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
         return;
     } else {
         WirelessFrame* frame = (WirelessFrame*)malloc(sizeof(WirelessFrame));
@@ -55,7 +58,7 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
         SendMessage(hwnd, TWM_TXDATA, (WPARAM)frame, sizeof(WirelessFrame));
         data->state = kWaitFrameACKState;
 
-        data->timeout = SetTimer(hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
+        data->timeout = SetTimer(hwnd, kWaitFrameACKTimer, TO_FRAME, &WaitFrameACKTimeout);
     }
 }
 
@@ -72,13 +75,13 @@ VOID CALLBACK ReadFrameTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
     if (++data->counters[timer] >= 3) {
         /* We have a problem here */
         OutputDebugString(TEXT("Got 3 timeouts! [kReadFrame]\n"));
-		fclose(data->read.fd);
+		//fclose(data->read.fd);
 		SetClassLong(data->hDlg, GCL_HCURSOR, (LONG)LoadCursor(NULL, IDC_ARROW));
         data->state = kIdleState;
         return;
     } else {
         data->state = kReadFrameState;
-        data->timeout = SetTimer(hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
+        data->timeout = SetTimer(hwnd, kReadFrameTimer, TO_READ, &ReadFrameTimeout);
     }
 }
 
@@ -95,5 +98,5 @@ VOID CALLBACK RandDelayTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
     SendByte(data->hwnd, ENQ);
     data->state = kSentENQState;
 
-    data->timeout = SetTimer(hwnd, kSentENQTimer, 10000, &SentENQTimeout);
+    data->timeout = SetTimer(hwnd, kSentENQTimer, TO_ENQ, &SentENQTimeout);
 }

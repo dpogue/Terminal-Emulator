@@ -11,6 +11,7 @@
 #include <WindowsX.h>
 #include "wireless.h"
 #include "resource.h"
+#include "crc.h"
 
 void SendByte(HWND hwnd, BYTE value) {
     BYTE* b = (BYTE*)malloc(sizeof(BYTE));
@@ -92,7 +93,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
-            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
+            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, TO_ENQ, &ReadFrameTimeout);
         }
         break;
     case kWaitFrameACKState:
@@ -106,7 +107,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotRVIState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
-            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
+            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, TO_READ, &ReadFrameTimeout);
             dat->send.sequence++;
             break;
         } else if (rx[0] == ACK) {
@@ -144,10 +145,10 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
 
                 SendMessage(dat->hwnd, TWM_TXDATA, (WPARAM)tosend, sizeof(WirelessFrame));
                 dat->state = kWaitFrameACKState;
-                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
+                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, TO_FRAME, &WaitFrameACKTimeout);
             } else {
                 DWORD e;
-                UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+                UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
                 SendByte(dat->hwnd, EOT);
                 e = IsWindow(dat->hDlg);
                 SetLastError(0);
@@ -173,9 +174,9 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             if (dat->send.fd != NULL) {
                 SendByte(dat->hwnd, ENQ);
                 dat->state = kSentENQState;
-                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, 20000, &WaitFrameACKTimeout);
+                dat->timeout = SetTimer(dat->hwnd, kWaitFrameACKTimer, TO_FRAME, &WaitFrameACKTimeout);
             } else {
-                UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+                UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
                 dat->timeout = SetTimer(dat->hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
             }
         } else if (rx[0] == ENQ) {
@@ -185,7 +186,7 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->state = kGotENQState;
             SendByte(dat->hwnd, ACK);
             dat->state = kReadFrameState;
-            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
+            dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, TO_READ, &ReadFrameTimeout);
         } else if (dat->read.frame != NULL) {
             TCHAR ber_value[16];
             KillTimer(dat->hwnd, dat->timeout);
@@ -231,11 +232,11 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             if (dat->send.fd != NULL) {
                 SendByte(dat->hwnd, RVI);
                 dat->state = kSentENQState;
-                dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, 10000, &SentENQTimeout);
+                dat->timeout = SetTimer(dat->hwnd, kSentENQTimer, TO_ENQ, &SentENQTimeout);
             } else {
                 SendByte(dat->hwnd, ACK);
                 dat->state = kReadFrameState;
-                dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, 20000, &ReadFrameTimeout);
+                dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, TO_READ, &ReadFrameTimeout);
             }
             free(dat->read.frame);
             dat->read.frame = NULL;
@@ -297,7 +298,7 @@ DWORD wireless_on_connect(LPVOID data) {
     WirelessData* dat = (WirelessData*)data;
     DWORD x = 0;
     DWORD y = 0;
-    UINT rand_timer = rand() * (RAND_MAX + 1) % 5000 + 1000;
+    UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
     HINSTANCE hInst = (HINSTANCE)GetModuleHandle(TEXT("wireless.dll"));
 
     for (y = 0; y < 24; y++) {
@@ -379,6 +380,8 @@ Emulator* wireless_init(HWND hwnd) {
     srand((UINT)time(NULL));
 
     e->emulator_data = data;
+
+    crcInit();
 
     return e;
 }

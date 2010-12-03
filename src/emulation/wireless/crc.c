@@ -21,7 +21,7 @@
 /*
  * Derive parameters from the standard-specific parameters in crc.h.
  */
-#define WIDTH    (8 * sizeof(crc))
+#define WIDTH    8
 #define TOPBIT   (1 << (WIDTH - 1))
 
 #if (REFLECT_DATA == TRUE)
@@ -155,9 +155,9 @@ crc  crcTable[256];
 void
 crcInit(void)
 {
-    crc			   remainder;
-	int			   dividend;
-	unsigned char  bit;
+    crc remainder;
+	unsigned int dividend;
+	unsigned char bit;
 
 
     /*

@@ -38,6 +38,12 @@ enum Timers {
     kMaxTimer = kRandDelayTimer
 };
 
+#define TO_ENQ 1000
+#define TO_FRAME 3000
+#define TO_READ 1500
+#define TO_RAND_MIN 0
+#define TO_RAND_MAX 1000
+
 typedef struct _wireless_data {
     TCHAR screen[24][81];
     BYTE screenrow;
