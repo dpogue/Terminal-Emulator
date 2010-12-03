@@ -64,10 +64,10 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             StringCchPrintf(err_count, 8, TEXT("%d"), ++dat->nErrors);
             SetDlgItemText(dat->hDlg, NUMBER_OF_NAKS, err_count);
 
-            if (dat->nPackets == 0) {
-                StringCchPrintf(ber_value, 8, TEXT("0.00000%"));
+            if (dat->nReadPackets == 0) {
+                StringCchPrintf(ber_value, 8, TEXT("100.00000\%"));
             } else {
-                StringCchPrintf(ber_value, 8, TEXT("%f%"), ((DOUBLE)(dat->nErrors) / dat->nPackets) * 100);
+                StringCchPrintf(ber_value, 8, TEXT("%f\%"), ((DOUBLE)(dat->nErrors) / dat->nReadPackets) * 100);
             }
             SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
 
@@ -189,13 +189,17 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
             dat->timeout = SetTimer(dat->hwnd, kReadFrameTimer, TO_READ, &ReadFrameTimeout);
         } else if (dat->read.frame != NULL) {
             TCHAR ber_value[16];
+            TCHAR pck_count[8];
             KillTimer(dat->hwnd, dat->timeout);
             dat->counters[dat->timeout] = 0;
             dat->timeout = 0;
-            if (dat->nPackets == 0) {
-                StringCchPrintf(ber_value, 8, TEXT("0.00000%"));
+            StringCchPrintf(pck_count, 8, TEXT("%d"), ++dat->nReadPackets);
+            SetDlgItemText(dat->hDlg, READ_PACKETS, pck_count);
+
+            if (dat->nReadPackets == 0) {
+                StringCchPrintf(ber_value, 8, TEXT("0.00000%%"));
             } else {
-                StringCchPrintf(ber_value, 8, TEXT("%f%"), ((DOUBLE)(dat->nErrors) / dat->nPackets) * 100);
+                StringCchPrintf(ber_value, 8, TEXT("%f%%"), ((DOUBLE)(dat->nErrors) / dat->nReadPackets) * 100);
             }
             SetDlgItemText(dat->hDlg, BIT_ERROR_RATE, ber_value);
             if (dat->read.fd == NULL) {
@@ -258,31 +262,6 @@ DWORD wireless_receive(LPVOID data, BYTE* rx, DWORD len) {
  * @returns int 0 on succes, greater than 0 otherwise.
  */
 DWORD wireless_paint(HWND hwnd, LPVOID data, HDC hdc, BOOLEAN force) {
-    /*NoneData* dat = (NoneData*)data;
-    TEXTMETRIC tm;
-    BYTE y = 0;
-    BOOLEAN bGotDC = FALSE;
-
-    if (hdc == NULL) {
-        hdc = GetDC(hwnd);
-        bGotDC = TRUE;
-    }
-
-    SelectObject(hdc, GetStockObject(ANSI_FIXED_FONT));
-    GetTextMetrics(hdc, &tm);
-    SetTextCharacterExtra(hdc, 1);
-
-    SetBkColor(hdc, RGB(0, 0, 0));
-    SetTextColor(hdc, RGB(255, 255, 255));
-
-    for (y = 0; y < 24; y++) {
-        TextOut(hdc, 0, y * (tm.tmExternalLeading + tm.tmHeight), dat->screen[y], _tcslen(dat->screen[y]));
-    }
-
-    if (bGotDC) {
-        ReleaseDC(hwnd, hdc);
-    }*/
-
     return 0;
 }
 
@@ -331,6 +310,8 @@ DWORD wireless_on_connect(LPVOID data) {
     dat->nAcks = 0;
     dat->nErrors = 0;
     dat->nPackets = 0;
+    dat->nReadPackets = 0;
+    dat->nRetransmissions = 0;
 
     dat->hDlg = CreateDialogParam(hInst, MAKEINTRESOURCE(StatDialog), dat->hwnd,
                                     (DLGPROC)WirelessDlgProc, (LPARAM)dat);

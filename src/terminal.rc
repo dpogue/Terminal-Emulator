@@ -1,5 +1,7 @@
 #include "terminal.h"
 
+IDI_APP_ICON    ICON    "wireless.ico"
+
 TerminalMenu MENU
 BEGIN
     POPUP "&Terminal"

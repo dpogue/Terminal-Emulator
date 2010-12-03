@@ -31,7 +31,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hprevInstance,
     wndclass.cbClsExtra    = 0;
     wndclass.cbWndExtra    = sizeof(TermInfo*);
     wndclass.hInstance     = hInstance;
-    wndclass.hIcon         = LoadIcon (NULL, IDI_APPLICATION);
+    wndclass.hIcon         = LoadIcon(hInstance, TEXT("IDI_APP_ICON"));
     wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW);
     wndclass.hbrBackground = (HBRUSH) GetStockObject (BLACK_BRUSH);
     wndclass.lpszMenuName  = TEXT("TerminalMenu");

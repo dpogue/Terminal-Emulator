@@ -60,6 +60,8 @@ typedef struct _wireless_data {
     INT nAcks;
     INT nErrors;
     INT nPackets;
+    INT nReadPackets;
+    INT nRetransmissions;
 } WirelessData;
 
 #endif

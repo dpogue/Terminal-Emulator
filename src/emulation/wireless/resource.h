@@ -17,6 +17,7 @@
 #define IDC_EDIT6                       50008
 #define FILE_PATH                       50008
 #define PACKETS_SENT                    50009
+#define READ_PACKETS                    50010
 #define StatDialog                      54465
 
 // Next default values for new objects
