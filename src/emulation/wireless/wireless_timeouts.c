@@ -29,6 +29,7 @@ VOID CALLBACK WaitFrameACKTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD tim
     if (++data->counters[timer] >= 3) {
         UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
         OutputDebugString(TEXT("Got 3 timeouts! [kWaitFrameACK]\n"));
+        data->counters[timer] = 0;
         data->state = kIdleState;
         data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
         return;
@@ -74,6 +75,7 @@ VOID CALLBACK ReadFrameTimeout(HWND hwnd, UINT msg, UINT_PTR timer, DWORD time) 
     if (++data->counters[timer] >= 3) {
         UINT rand_timer = rand() * (RAND_MAX + 1) % TO_RAND_MAX + TO_RAND_MIN;
         OutputDebugString(TEXT("Got 3 timeouts! [kReadFrame]\n"));
+        data->counters[timer] = 0;
         data->state = kIdleState;
         data->timeout = SetTimer(hwnd, kRandDelayTimer, rand_timer, &RandDelayTimeout);
         return;
